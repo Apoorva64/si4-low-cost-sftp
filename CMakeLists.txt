@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 project(SecTrans)
+
+
+enable_testing()
 add_subdirectory(external-libs/libclient)
 add_subdirectory(external-libs/libserver)
 add_subdirectory(external-libs/AES)
@@ -8,12 +11,13 @@ add_subdirectory(external-libs/CLI11)
 add_subdirectory(common)
 add_subdirectory(server)
 add_subdirectory(client)
+add_subdirectory(tests)
 
 set(CMAKE_CXX_STANDARD 23)
 
 
-#set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-#
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 #include(FetchContent)
 #FetchContent_Declare(
 #        googletest
