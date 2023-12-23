@@ -1,6 +1,6 @@
 #include <iostream>
 #include "../common/SocketCommunication/SocketCommunication.h"
-#include "../common/CLI11.hpp"
+#include "CLI11.hpp"
 #include "client/Client.h"
 
 int main(int argc, char **argv) {

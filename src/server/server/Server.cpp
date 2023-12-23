@@ -6,7 +6,7 @@
 #include <fstream>
 #include <filesystem>
 #include "Server.h"
-#include "../../common/OpenSSL/OpenSSL.h"
+#include "OpenSSL.h"
 
 #define SPERATOR '|'
 #define FILES_FOLDER "files"

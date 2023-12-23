@@ -3,9 +3,10 @@
 //
 
 #include "Client.h"
-#include "../../common/AES/AES.h"
-#include "../../common/OpenSSL/OpenSSL.h"
+#include "AES.h"
+#include "OpenSSL.h"
 #include <crypt.h>
+#include "CLI11.hpp"
 
 
 Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunication(inPort, outPort) {

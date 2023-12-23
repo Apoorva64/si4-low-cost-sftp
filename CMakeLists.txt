@@ -1,31 +1,26 @@
 cmake_minimum_required(VERSION 3.22)
 project(SecTrans)
-add_subdirectory(libclient)
-add_subdirectory(libserver)
+add_subdirectory(external-libs/libclient)
+add_subdirectory(external-libs/libserver)
+add_subdirectory(external-libs/AES)
+add_subdirectory(external-libs/OpenSSL)
+add_subdirectory(external-libs/CLI11)
 
 set(CMAKE_CXX_STANDARD 23)
 find_package(OpenSSL REQUIRED)
 add_executable(SecTransServer src/server/main.cpp
         src/common/SocketCommunication/SocketCommunication.cpp
         src/common/SocketCommunication/SocketCommunication.h
-        src/common/AES/AES.cpp
-        src/common/AES/AES.h
-        src/common/OpenSSL/OpenSSL.cpp
-        src/common/OpenSSL/OpenSSL.h
         src/server/server/Server.cpp
         src/server/server/Server.h
 )
-target_link_libraries(SecTransServer OpenSSL::SSL libclient libserver)
+target_link_libraries(SecTransServer libclient libserver AES OpenSSL)
 add_executable(SecTransClient src/client/main.cpp
         src/common/SocketCommunication/SocketCommunication.cpp
         src/common/SocketCommunication/SocketCommunication.h
-        src/common/AES/AES.cpp
-        src/common/AES/AES.h
-        src/common/OpenSSL/OpenSSL.cpp
-        src/common/OpenSSL/OpenSSL.h
         src/client/client/Client.cpp
         src/client/client/Client.h)
-target_link_libraries(SecTransClient OpenSSL::SSL libclient libserver)
+target_link_libraries(SecTransClient libclient libserver AES OpenSSL CLI11)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

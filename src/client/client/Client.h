@@ -6,7 +6,7 @@
 #define SECTRANS_CLIENT_H
 
 
-#include "../../common/CLI11.hpp"
+#include "CLI11.hpp"
 #include "../../common/SocketCommunication/SocketCommunication.h"
 
 class Client : public CLI::App, public SocketCommunication {
