@@ -7,8 +7,8 @@
 #include "SocketCommunication.h"
 
 extern "C" {
-#include "../client.h"
-#include "../server.h"
+#include "libclient.h"
+#include "libserver.h"
 }
 
 #define END_OF_MESSAGE '`'
