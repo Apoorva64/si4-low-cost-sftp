@@ -1,5 +1,4 @@
 #include <iostream>
-#include "../common/SocketCommunication/SocketCommunication.h"
 #include "server/Server.h"
 
 int main() {
