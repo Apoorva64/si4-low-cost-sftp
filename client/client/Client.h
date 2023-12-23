@@ -5,7 +5,8 @@
 #ifndef SECTRANS_CLIENT_H
 #define SECTRANS_CLIENT_H
 
-
+#include "OpenSSL.h"
+#include "OpenSSL_Utils.h"
 #include "CLI11.hpp"
 #include "../../common/SocketCommunication/SocketCommunication.h"
 
@@ -19,9 +20,9 @@ public:
     Client(int inPort, int outPort, int argc, char **argv);
     void upload();
 
-    void upload(const std::string &filename_, const unsigned char *key_, const unsigned char *fileContent_);
+    void upload(const std::string &filename_, OpenSSL_AES_Keys param, const unsigned char *fileContent_);
 
-    void download(const std::string &filename_, const unsigned char *key_);
+    void download(const std::string &filename_, OpenSSL_AES_Keys param);
 };
 
 

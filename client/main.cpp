@@ -24,16 +24,21 @@ int main(int argc, char **argv) {
             argv
     );
 
+    OpenSSL_AES_Keys aesKeys;
+
+    aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
+    aesKeys.iv = "a7fe8fed9f4v8e5d";
+
     client.start();
     client.test();
     client.upload(
             "test.txt",
-            reinterpret_cast<const unsigned char *>("p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^"),
+            aesKeys,
             reinterpret_cast<const unsigned char *>("pewpewpew")
             );
     client.download(
             "test.txt",
-            reinterpret_cast<const unsigned char *>("p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^")
+            aesKeys
             );
     return 0;
 }

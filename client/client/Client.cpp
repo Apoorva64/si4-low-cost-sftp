@@ -29,8 +29,7 @@ void Client::upload() {
 
 }
 
-void Client::upload(const std::string &filename_, const unsigned char *key_, const unsigned char *fileContent_) {
-    AES aes = AES();
+void Client::upload(const std::string &filename_, OpenSSL_AES_Keys param, const unsigned char *fileContent_) {
     std::cout << "Uploading file: " << filename << std::endl;
     unsigned int fileContentSize = strlen((char *) fileContent_);
 
@@ -47,8 +46,11 @@ void Client::upload(const std::string &filename_, const unsigned char *key_, con
     std::cout << "File contents: " << paddedFileContent << std::endl;
     std::cout << "File contents size: " << paddedFileContentSize << std::endl;
 
+    std::string buf(reinterpret_cast<char*>(paddedFileContent));
+
+    std::string env_buf = OpenSSL::aes_encrypt(buf, param.key, param.iv);
     // encrypt file contents
-    unsigned char *encryptedFileContent = aes.EncryptECB(paddedFileContent, paddedFileContentSize, key_);
+    unsigned char *encryptedFileContent = OpenSSL_Utils::convert_string_to_uchar(env_buf);
     // encode file contents to base64
     std::string encodedFileContent = OpenSSL::base64_encode(
             std::string((char *) encryptedFileContent, paddedFileContentSize));
@@ -56,7 +58,7 @@ void Client::upload(const std::string &filename_, const unsigned char *key_, con
     this->send("upload|" + filename_ + "|" + encodedFileContent);
 }
 
-void Client::download(const std::string &filename_, const unsigned char *key_) {
+void Client::download(const std::string &filename_, OpenSSL_AES_Keys param) {
     std::cout << "Downloading file: " << filename << std::endl;
     this->send("download|" + filename_);
     std::string fileContents = this->receiveString();
@@ -67,9 +69,8 @@ void Client::download(const std::string &filename_, const unsigned char *key_) {
     std::cout << "Decoded file contents: " << decodedFileContent << std::endl;
 
     // decrypt file contents
-    AES aes = AES();
-    unsigned char *decryptedFileContent = aes.DecryptECB((unsigned char *) decodedFileContent.c_str(),
-                                                         decodedFileContent.length(), key_);
+    std::string dec_buf = OpenSSL::aes_decrypt(decodedFileContent, param.key, param.iv);
+    unsigned char *decryptedFileContent = OpenSSL_Utils::convert_string_to_uchar(dec_buf);
     std::cout << "Decrypted file contents: " << decryptedFileContent << std::endl;
 }
 

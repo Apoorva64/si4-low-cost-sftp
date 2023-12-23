@@ -24,6 +24,7 @@
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/x509_vfy.h>
+#include <openssl/aes.h>
 
 #include <memory>
 #include <vector>
@@ -31,6 +32,13 @@
 #include <fstream>
 #include <filesystem>
 #include <functional>
+
+struct OpenSSL_AES_Keys_st{
+    std::string key;
+    std::string iv;
+};
+
+typedef struct OpenSSL_AES_Keys_st OpenSSL_AES_Keys;
 
 struct OpenSSLFree
 {
@@ -210,6 +218,8 @@ public:
    */
     [[nodiscard]] static std::string base64_encode(const std::string& message);
 
+    [[nodiscard]] static std::string aes_encrypt(const std::string& message, const std::string& key, const std::string& iv);
+    [[nodiscard]] static std::string aes_decrypt(const std::string& message, const std::string& key, const std::string& iv);
 private:
 
     /**

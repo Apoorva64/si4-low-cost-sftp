@@ -4,6 +4,9 @@ find_package(OpenSSL REQUIRED)
 add_library(OpenSSL STATIC
         OpenSSL.cpp
         OpenSSL.h
+        OpenSSL_AES.cpp
+        OpenSSL_Utils.cpp
+        OpenSSL_Utils.h
 )
 
 target_link_libraries(OpenSSL
