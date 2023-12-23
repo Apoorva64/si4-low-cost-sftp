@@ -1,0 +1,18 @@
+
+
+# Declare the library
+add_library(common STATIC
+        SocketCommunication/SocketCommunication.cpp
+        SocketCommunication/SocketCommunication.h
+)
+
+
+set_target_properties(common PROPERTIES LINKER_LANGUAGE CXX)
+
+target_link_libraries(common libclient libserver AES OpenSSL)
+
+# Specify here the include directories exported
+# by this library
+target_include_directories(common PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)

@@ -6,7 +6,7 @@
 #define SECTRANS_SERVER_H
 
 
-#include "../../common/SocketCommunication/SocketCommunication.h"
+#include "SocketCommunication/SocketCommunication.h"
 
 class Server : public SocketCommunication {
 
