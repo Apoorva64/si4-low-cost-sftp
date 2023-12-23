@@ -18,7 +18,7 @@ public:
 
     [[nodiscard]] std::string receiveString() const;
 
-    void handleMessage(std::string msg) const;
+    virtual void handleMessage(const std::string& msg) const;
 
     [[noreturn]] void run() const;
 

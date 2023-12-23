@@ -1,13 +1,13 @@
 #include <iostream>
 #include "../common/SocketCommunication/SocketCommunication.h"
+#include "server/Server.h"
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
-    SocketCommunication socketCommunication = SocketCommunication(
+    auto server = Server(
             8080,
-            8081
-            );
+            8081);
 
-    socketCommunication.start();
-    socketCommunication.run();
+    server.start();
+    server.run();
 }

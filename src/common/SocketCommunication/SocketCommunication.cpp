@@ -11,8 +11,7 @@ extern "C" {
 #include "../server.h"
 }
 
-#define END_OF_MESSAGE "END"
-#define HEADER_SIZE 512
+#define END_OF_MESSAGE '`'
 
 SocketCommunication::SocketCommunication(int inPort, int outPort) {
     this->inPort = inPort;
@@ -34,7 +33,6 @@ void SocketCommunication::test() const {
     if (str != "Pong") {
         throw std::runtime_error("Connection failed");
     }
-    std::cout << "Received: " << this->readBuffer << std::endl;
     std::cout << "Connection established!" << std::endl;
 }
 
@@ -57,7 +55,7 @@ void SocketCommunication::send(const std::string &msg) const {
 std::string SocketCommunication::receiveString() const {
     getmsg(this->readBuffer);
     std::string msg = this->readBuffer;
-    std::cout << "Received: " << msg << std::endl;
+    std::cout << "Received Chunk: " << msg << std::endl;
     while (msg.find(END_OF_MESSAGE) == std::string::npos) {
         getmsg(this->readBuffer);
         msg += this->readBuffer;
@@ -67,8 +65,7 @@ std::string SocketCommunication::receiveString() const {
     return fullMsg;
 }
 
-void SocketCommunication::handleMessage(std::string msg) const {
-    std::cout << "Received: " << msg << std::endl;
+void SocketCommunication::handleMessage(const std::string &msg) const {
     if (msg == "Ping") {
         this->send("Pong");
     }
@@ -80,4 +77,3 @@ void SocketCommunication::handleMessage(std::string msg) const {
         this->handleMessage(msg);
     }
 }
-
