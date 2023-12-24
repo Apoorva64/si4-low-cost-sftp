@@ -8,9 +8,12 @@
 #include <crypt.h>
 #include "CLI11.hpp"
 #include "curl/curl.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include <nlohmann/json.hpp>
 
 
 Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunication(inPort, outPort) {
+    this->logger = spdlog::stdout_color_mt("Client");
 
     App *upload = this->add_subcommand("upload", "Upload a file");
     upload->add_option("-f,--file", this->filename, "Specify file to upload")->required();
@@ -38,7 +41,7 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
 
 
 void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &base64FileContent) {
-    std::cout << "Uploading file: " << filename << std::endl;
+    logger->info("Uploading file: {}", filename);
     unsigned int fileContentSize = base64FileContent.length();
 
     // pad file contents to be multiple of 16
@@ -51,8 +54,9 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
     for (unsigned int i = fileContentSize; i < paddedFileContentSize; i++) {
         paddedFileContent[i] = '\0';
     }
-    std::cout << "File contents: " << paddedFileContent << std::endl;
-    std::cout << "File contents size: " << paddedFileContentSize << std::endl;
+
+    logger->debug("File contents: {}", std::string((char *) paddedFileContent, paddedFileContentSize));
+    logger->debug("File contents size: {}", paddedFileContentSize);
 
     std::string buf(reinterpret_cast<char *>(paddedFileContent));
 
@@ -62,23 +66,23 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
     // encode file contents to base64
     std::string encodedFileContent = OpenSSL::base64_encode(
             std::string((char *) encryptedFileContent, paddedFileContentSize));
-    std::cout << "File contents: " << encodedFileContent << std::endl;
+    logger->debug("Encrypted file contents: {}", encodedFileContent);
     this->send("upload|" + filename_ + "|" + encodedFileContent);
 }
 
 std::string Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param) {
-    std::cout << "Downloading file: " << filename << std::endl;
+    logger->info("Downloading file: {}", filename);
     this->send("download|" + filename_);
     std::string fileContents = this->receiveString();
-    std::cout << "File contents: " << fileContents << std::endl;
+    logger->debug("File contents: {}", fileContents);
 
     // decode base64
     std::string decodedFileContent = OpenSSL::base64_decode(fileContents);
-    std::cout << "Decoded file contents: " << decodedFileContent << std::endl;
+    logger->debug("Decoded file contents: {}", decodedFileContent);
 
     // decrypt file contents
     std::string dec_buf = OpenSSL::aes_decrypt(decodedFileContent, param.key, param.iv);
-    std::cout << "Decrypted file contents: " << dec_buf << std::endl;
+    logger->debug("Decrypted file contents: {}", dec_buf);
     return dec_buf;
 }
 
@@ -95,13 +99,13 @@ void Client::upload() {
     file.seekg(0, std::ios::beg);
     auto *fileContent = new unsigned char[size];
     if (file.read((char *) fileContent, size)) {
-        std::cout << "File contents: " << fileContent << std::endl;
-        std::cout << "File contents size: " << size << std::endl;
+        logger->debug("File contents: {}", std::string((char *) fileContent, size));
+        logger->debug("File contents size: {}", size);
         std::string fileContentString(reinterpret_cast<char *>(fileContent), size);
         std::string base64FileContent = OpenSSL::base64_encode(fileContentString);
         this->upload(this->filename, aesKeys, base64FileContent);
     } else {
-        std::cout << "Failed to read file" << std::endl;
+        logger->error("Failed to read file");
     }
 
     file.close();
@@ -113,15 +117,20 @@ void Client::download() {
     aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
     aesKeys.iv = "a7fe8fed9f4v8e5d";
     std::string decrypted = this->download(this->filename, aesKeys);
-    std::cout << "Decrypted file contents: " << decrypted << std::endl;
+    logger->debug("Decrypted file contents: {}", decrypted);
     // base64 decode
     std::string decoded = OpenSSL::base64_decode(decrypted);
-    std::cout << "Decoded file contents: " << decoded << std::endl;
+    logger->debug("Decoded file contents: {}", decoded);
     std::ofstream file(this->filename, std::ios::binary);
     file << decoded;
     file.close();
 }
 
+size_t WriteCallback(char *contents, size_t size, size_t nmemb, void *userp)
+{
+    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
 void Client::login() {
     // get username and password
     std::string username;
@@ -139,6 +148,7 @@ void Client::login() {
     std::string url = "https://keycloak.auth.apoorva64.com/realms/projet-secu/protocol/openid-connect/token";
     CURL *curl;
     CURLcode res;
+    std::string readBuffer;
     curl = curl_easy_init();
     if (curl) {
 
@@ -153,11 +163,21 @@ void Client::login() {
         std::cout << "Post fields: " << postFields << std::endl;
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postFields.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
         res = curl_easy_perform(curl);
-        std::cout << "Curl response: " << res << std::endl;
         if (res != CURLE_OK) {
-            std::cout << "Curl error: " << curl_easy_strerror(res) << std::endl;
+            logger->error("Curl error: {}", curl_easy_strerror(res));
+            return;
         }
+        std::cout << "Curl response: " << res << std::endl;
+        // parse res into json
+        nlohmann::json json = nlohmann::json::parse(readBuffer);
+        std::string access_token = json["access_token"];
+        std::cout << "Access token: " << access_token << std::endl;
+        std::string refresh_token = json["refresh_token"];
+
         curl_easy_cleanup(curl);
 
     }

@@ -5,4 +5,10 @@ add_executable(SecTransClient main.cpp
         client/Client.cpp
         client/Client.h)
 find_library(curl NAMES curl)
-target_link_libraries(SecTransClient libclient libserver AES OpenSSL CLI11 common ${curl})
+include(FetchContent)
+
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
+target_link_libraries(SecTransClient libclient libserver AES OpenSSL CLI11 common ${curl} nlohmann_json::nlohmann_json)
+

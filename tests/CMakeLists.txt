@@ -10,7 +10,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 add_executable(tests hello_test.cpp)
-target_link_libraries(tests catch Catch2::Catch2WithMain)
+target_link_libraries(tests Catch2::Catch2WithMain)
 include(CTest)
 include(Catch)
 catch_discover_tests(tests)
