@@ -23,6 +23,10 @@ public:
     [[noreturn]] void run() const;
 
     void test() const;
+
+    int getmsgWrapper(char *msg, int port) const;
+
+    int sndmsgWrapper(char *msg, int port) const;
 };
 
 

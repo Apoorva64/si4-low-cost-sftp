@@ -20,9 +20,11 @@ public:
     Client(int inPort, int outPort, int argc, char **argv);
     void upload();
 
-    void upload(const std::string &filename_, OpenSSL_AES_Keys param, const unsigned char *fileContent_);
+    void upload(const std::string &filename_, const OpenSSL_AES_Keys& param, const unsigned char *fileContent_);
 
-    void download(const std::string &filename_, OpenSSL_AES_Keys param);
+    unsigned char download(const std::string &filename_, const OpenSSL_AES_Keys& param);
+
+    void download();
 };
 
 

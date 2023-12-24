@@ -10,26 +10,29 @@
 
 
 Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunication(inPort, outPort) {
-//
-//    App *upload = this->add_subcommand("upload", "Upload a file");
-//    upload->add_option("-f,--file", this->filename, "Specify file to upload")->required();
-//    upload->callback([this]() {
-//        this->upload();
-//    });
-//
-//
-//    App *download = this->add_subcommand("download", "Download a file");
-//    App *list = this->add_subcommand("list", "List files on server");
-//    App *help = this->add_subcommand("help", "Display help");
-//    download->add_option("-f,--file", this->filename, "Specify file to download")->required();
+
+    App *upload = this->add_subcommand("upload", "Upload a file");
+    upload->add_option("-f,--file", this->filename, "Specify file to upload")->required();
+    upload->callback([this]() {
+        this->upload();
+    });
+
+
+    App *download = this->add_subcommand("download", "Download a file");
+    download->add_option("-f,--file", this->filename, "Specify file to download")->required();
+    download->callback([this]() {
+        this->download();
+    });
+    App *list = this->add_subcommand("list", "List files on server");
+    App *help = this->add_subcommand("help", "Display help");
+    this->start();
+    this->test();
+    this->parse(argc, argv);
 }
 
-void Client::upload() {
-    std::cout << "Uploading file: " << this->filename << std::endl;
 
-}
 
-void Client::upload(const std::string &filename_, OpenSSL_AES_Keys param, const unsigned char *fileContent_) {
+void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys& param, const unsigned char *fileContent_) {
     std::cout << "Uploading file: " << filename << std::endl;
     unsigned int fileContentSize = strlen((char *) fileContent_);
 
@@ -58,7 +61,7 @@ void Client::upload(const std::string &filename_, OpenSSL_AES_Keys param, const 
     this->send("upload|" + filename_ + "|" + encodedFileContent);
 }
 
-void Client::download(const std::string &filename_, OpenSSL_AES_Keys param) {
+unsigned char Client::download(const std::string &filename_, const OpenSSL_AES_Keys& param) {
     std::cout << "Downloading file: " << filename << std::endl;
     this->send("download|" + filename_);
     std::string fileContents = this->receiveString();
@@ -72,5 +75,43 @@ void Client::download(const std::string &filename_, OpenSSL_AES_Keys param) {
     std::string dec_buf = OpenSSL::aes_decrypt(decodedFileContent, param.key, param.iv);
     unsigned char *decryptedFileContent = OpenSSL_Utils::convert_string_to_uchar(dec_buf);
     std::cout << "Decrypted file contents: " << decryptedFileContent << std::endl;
+    return *decryptedFileContent;
 }
+
+
+void Client::upload() {
+    std::cout << "Uploading file: " << this->filename << std::endl;
+    OpenSSL_AES_Keys aesKeys;
+
+    aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
+    aesKeys.iv = "a7fe8fed9f4v8e5d";
+    // read file contents
+    std::ifstream file(this->filename, std::ios::binary | std::ios::ate);
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    auto *fileContent = new unsigned char[size];
+    if (file.read((char *) fileContent, size)) {
+        std::cout << "File contents: " << fileContent << std::endl;
+        std::cout << "File contents size: " << size << std::endl;
+
+        this->upload(this->filename, aesKeys, fileContent);
+    } else {
+        std::cout << "Failed to read file" << std::endl;
+    }
+
+    file.close();
+}
+
+void Client::download() {
+    std::cout << "Downloading file: " << this->filename << std::endl;
+    OpenSSL_AES_Keys aesKeys;
+    aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
+    aesKeys.iv = "a7fe8fed9f4v8e5d";
+    unsigned char decrypted = this->download(this->filename, aesKeys);
+    std::cout << "Decrypted file contents: " << decrypted << std::endl;
+    std::ofstream file(this->filename, std::ios::binary);
+    file << decrypted;
+    file.close();
+}
+
 
