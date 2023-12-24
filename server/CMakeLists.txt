@@ -4,4 +4,4 @@ add_executable(SecTransServer main.cpp
         server/Server.cpp
         server/Server.h
 )
-target_link_libraries(SecTransServer libclient libserver AES OpenSSL common)
+target_link_libraries(SecTransServer libclient libserver AES OpenSSL common spdlog)

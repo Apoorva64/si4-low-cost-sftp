@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
             argc,
             argv
     );
+    client.login();
 
     OpenSSL_AES_Keys aesKeys;
 

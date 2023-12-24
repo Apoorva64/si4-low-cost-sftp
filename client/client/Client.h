@@ -26,6 +26,8 @@ public:
     void download();
 
     void upload(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &base64FileContent);
+
+    void login();
 };
 
 

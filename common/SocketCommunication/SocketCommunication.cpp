@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cstring>
 #include "SocketCommunication.h"
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 extern "C" {
 #include "libclient.h"
@@ -19,17 +21,19 @@ SocketCommunication::SocketCommunication(int inPort, int outPort) {
     this->outPort = outPort;
     this->readBuffer = new char[1024];
     this->writeBuffer = new char[1024];
+    this->logger = spdlog::stdout_color_mt("SocketCommunication");
 
 }
 
 void SocketCommunication::start() const {
-    std::cout << "Starting server..." << std::endl;
+    logger->info("Starting server on port {}", (int) this->inPort);
     startserver(this->inPort);
 }
 
 void SocketCommunication::test() const {
-    std::cout << "Testing Connection to server..." << std::endl;
+    logger->info("Testing Connection to server sending Ping on port {}", (int) this->outPort);
     this->send("Ping");
+    logger->info("Waiting for response... on port {}", (int) this->outPort);
     std::string str = this->receiveString();
     if (str != "Pong") {
         throw std::runtime_error("Connection failed");
@@ -40,13 +44,15 @@ void SocketCommunication::test() const {
 int SocketCommunication::sndmsgWrapper(char msg[1024], int port) const {
     int error = sndmsg(msg, port);
     if (error == -1) {
+        logger->error("Libclient error");
         throw std::runtime_error("Libclient error");
     }
 
     // get OK from other side
     getmsg(this->readBuffer);
-    std::cout << "Check Received: " << this->readBuffer << std::endl;
+    logger->debug("Check Received: {}", this->readBuffer);
     if (std::string(this->readBuffer).substr(0, 2) != "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
+        logger->error("Check failed");
         throw std::runtime_error("Check failed");
     }
 
@@ -61,6 +67,7 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
     char *msg2 = new char[1024];
     int error = getmsg(msg2);
     if (error == -1) {
+        logger->error("LibServer error");
         throw std::runtime_error("LibServer error");
     }
     // send OK to other side
@@ -70,7 +77,7 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
 
     // get OK from other side
     getmsg(this->readBuffer);
-    std::cout << "Check Received: " << this->readBuffer << std::endl;
+    logger->debug("Check Received: {}", this->readBuffer);
     if (std::string(this->readBuffer).substr(0, 2) != "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
         throw std::runtime_error("Check failed");
     }
@@ -79,7 +86,7 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
 }
 
 void SocketCommunication::send(const std::string &msg) const {
-    std::cout << "Sending: " << msg << std::endl;
+    logger->info("Sending: {}", msg);
     std::string msgToSend = msg + END_OF_MESSAGE;
     unsigned long msgLength = msgToSend.length();
     unsigned long chunks = msgLength / 1024;
@@ -99,13 +106,13 @@ void SocketCommunication::send(const std::string &msg) const {
 std::string SocketCommunication::receiveString() const {
     this->getmsgWrapper(this->readBuffer, this->outPort);
     std::string msg = this->readBuffer;
-    std::cout << "Received Chunk: " << msg << std::endl;
+    logger->debug("Received Chunk: {}", msg);
     while (msg.find(END_OF_MESSAGE) == std::string::npos) {
         this->getmsgWrapper(this->readBuffer, this->outPort);
         msg += this->readBuffer;
     }
     std::string fullMsg = msg.substr(0, msg.find(END_OF_MESSAGE));
-    std::cout << "Received: " << fullMsg << std::endl;
+    logger->info("Received: {}", fullMsg);
     return fullMsg;
 }
 

@@ -5,6 +5,8 @@
 #ifndef SECTRANS_SOCKETCOMMUNICATION_H
 #define SECTRANS_SOCKETCOMMUNICATION_H
 
+#include "spdlog/logger.h"
+
 class SocketCommunication {
 public:
     SocketCommunication(int inPort, int outPort);
@@ -27,6 +29,8 @@ public:
     int getmsgWrapper(char *msg, int port) const;
 
     int sndmsgWrapper(char *msg, int port) const;
+
+    std::shared_ptr<spdlog::logger> logger;
 };
 
 
