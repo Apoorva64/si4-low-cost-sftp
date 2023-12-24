@@ -40,30 +40,41 @@ void SocketCommunication::test() const {
 int SocketCommunication::sndmsgWrapper(char msg[1024], int port) const {
     int error = sndmsg(msg, port);
     if (error == -1) {
-        throw std::runtime_error("Error sending message");
+        throw std::runtime_error("Libclient error");
     }
-    // get OK from server
-    memset(this->readBuffer, 0, 1024);
+
+    // get OK from other side
     getmsg(this->readBuffer);
     std::cout << "Check Received: " << this->readBuffer << std::endl;
     if (std::string(this->readBuffer).substr(0, 2) != "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
-        throw std::runtime_error("Error sending message");
+        throw std::runtime_error("Check failed");
     }
+
+    // send OK to other side
+    std::string ok = "OK";
+    strcpy(this->writeBuffer, ok.c_str());
+    sndmsg(this->writeBuffer, port);
     return error;
 }
 
 int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
-    int error = getmsg(msg);
+    char *msg2 = new char[1024];
+    int error = getmsg(msg2);
     if (error == -1) {
-        throw std::runtime_error("Error receiving message");
+        throw std::runtime_error("LibServer error");
     }
-    // Wait for other side to be ready sleeping for 0.1 second
-    usleep(100000); //TODO: THIS IS FCKED UP AND SHOULD BE REPLACED WITH A PROPER SOLUTION HEEEEEEEEEEEEEEEEEEEELP
-    // send OK to server
+    // send OK to other side
     std::string ok = "OK";
-    memset(this->writeBuffer, 0, 1024);
     strcpy(this->writeBuffer, ok.c_str());
     sndmsg(this->writeBuffer, port);
+
+    // get OK from other side
+    getmsg(this->readBuffer);
+    std::cout << "Check Received: " << this->readBuffer << std::endl;
+    if (std::string(this->readBuffer).substr(0, 2) != "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
+        throw std::runtime_error("Check failed");
+    }
+    strcpy(msg, msg2);
     return error;
 }
 
@@ -76,24 +87,20 @@ void SocketCommunication::send(const std::string &msg) const {
     for (unsigned long i = 0; i < chunks; i++) {
         std::string chunk = msgToSend.substr(i * 1024, 1024);
         strcpy(this->writeBuffer, chunk.c_str());
-//        sndmsg(this->writeBuffer, this->outPort);
         this->sndmsgWrapper(this->writeBuffer, this->outPort);
     }
     std::string chunk = msgToSend.substr(chunks * 1024, remainder);
     strcpy(this->writeBuffer, chunk.c_str());
-//    sndmsg(this->writeBuffer, this->outPort);
     this->sndmsgWrapper(this->writeBuffer, this->outPort);
 
 }
 
 
 std::string SocketCommunication::receiveString() const {
-//    getmsg(this->readBuffer);
     this->getmsgWrapper(this->readBuffer, this->outPort);
     std::string msg = this->readBuffer;
     std::cout << "Received Chunk: " << msg << std::endl;
     while (msg.find(END_OF_MESSAGE) == std::string::npos) {
-//        getmsg(this->readBuffer);
         this->getmsgWrapper(this->readBuffer, this->outPort);
         msg += this->readBuffer;
     }

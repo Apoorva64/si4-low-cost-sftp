@@ -32,9 +32,9 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
 
 
 
-void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys& param, const unsigned char *fileContent_) {
+void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys& param, const std::string& base64FileContent) {
     std::cout << "Uploading file: " << filename << std::endl;
-    unsigned int fileContentSize = strlen((char *) fileContent_);
+    unsigned int fileContentSize = base64FileContent.length();
 
     // pad file contents to be multiple of 16
     unsigned int paddedFileContentSize = fileContentSize;
@@ -42,7 +42,7 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys& param,
         paddedFileContentSize += 16 - (paddedFileContentSize % 16);
     }
     auto *paddedFileContent = new unsigned char[paddedFileContentSize];
-    memcpy(paddedFileContent, fileContent_, fileContentSize);
+    memcpy(paddedFileContent, base64FileContent.c_str(), fileContentSize);
     for (unsigned int i = fileContentSize; i < paddedFileContentSize; i++) {
         paddedFileContent[i] = '\0';
     }
@@ -61,7 +61,7 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys& param,
     this->send("upload|" + filename_ + "|" + encodedFileContent);
 }
 
-unsigned char Client::download(const std::string &filename_, const OpenSSL_AES_Keys& param) {
+std::string Client::download(const std::string &filename_, const OpenSSL_AES_Keys& param) {
     std::cout << "Downloading file: " << filename << std::endl;
     this->send("download|" + filename_);
     std::string fileContents = this->receiveString();
@@ -73,9 +73,8 @@ unsigned char Client::download(const std::string &filename_, const OpenSSL_AES_K
 
     // decrypt file contents
     std::string dec_buf = OpenSSL::aes_decrypt(decodedFileContent, param.key, param.iv);
-    unsigned char *decryptedFileContent = OpenSSL_Utils::convert_string_to_uchar(dec_buf);
-    std::cout << "Decrypted file contents: " << decryptedFileContent << std::endl;
-    return *decryptedFileContent;
+    std::cout << "Decrypted file contents: " << dec_buf << std::endl;
+    return dec_buf;
 }
 
 
@@ -93,8 +92,9 @@ void Client::upload() {
     if (file.read((char *) fileContent, size)) {
         std::cout << "File contents: " << fileContent << std::endl;
         std::cout << "File contents size: " << size << std::endl;
-
-        this->upload(this->filename, aesKeys, fileContent);
+        std::string fileContentString(reinterpret_cast<char*>(fileContent), size);
+        std::string base64FileContent = OpenSSL::base64_encode(fileContentString);
+        this->upload(this->filename, aesKeys, base64FileContent);
     } else {
         std::cout << "Failed to read file" << std::endl;
     }
@@ -107,10 +107,13 @@ void Client::download() {
     OpenSSL_AES_Keys aesKeys;
     aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
     aesKeys.iv = "a7fe8fed9f4v8e5d";
-    unsigned char decrypted = this->download(this->filename, aesKeys);
+    std::string decrypted = this->download(this->filename, aesKeys);
     std::cout << "Decrypted file contents: " << decrypted << std::endl;
+    // base64 decode
+    std::string decoded = OpenSSL::base64_decode(decrypted);
+    std::cout << "Decoded file contents: " << decoded << std::endl;
     std::ofstream file(this->filename, std::ios::binary);
-    file << decrypted;
+    file << decoded;
     file.close();
 }
 

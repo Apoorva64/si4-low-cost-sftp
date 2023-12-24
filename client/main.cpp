@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     client.upload(
             "test.txt",
             aesKeys,
-            reinterpret_cast<const unsigned char *>("pewpewpew")
+            "cGV3cGV3cGV3"
             );
     client.download(
             "test.txt",
