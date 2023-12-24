@@ -4,19 +4,6 @@
 #include "client/Client.h"
 
 int main(int argc, char **argv) {
-//    SocketCommunication socketCommunication = SocketCommunication(
-//            8081,
-//            8080
-//    );
-//
-//    socketCommunication.start();
-//    socketCommunication.test();
-//    socketCommunication.send("upload|test.txt|cGV3cGV3cGV3");
-//    socketCommunication.send("list");
-//    std::cout << socketCommunication.receiveString() << std::endl;
-//    socketCommunication.send("download|test.txt");
-//    std::cout << socketCommunication.receiveString() << std::endl;
-
     Client client = Client(
             8081,
             8080,
