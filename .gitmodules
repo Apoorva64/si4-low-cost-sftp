@@ -1,3 +1,6 @@
 [submodule "external-libs/jwt-cpp"]
 	path = external-libs/jwt-cpp
 	url = https://github.com/Thalhammer/jwt-cpp
+[submodule "external-libs/curlcpp"]
+	path = external-libs/curlcpp
+	url = https://github.com/JosephP91/curlcpp

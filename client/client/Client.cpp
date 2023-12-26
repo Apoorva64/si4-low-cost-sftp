@@ -148,65 +148,12 @@ void Client::login() {
     std::cout << "Password: ";
     std::cin >> password;
 
-    std::string client_id = "projet-secu";
-    std::string client_secret = "cFPXiYvSF1dW0zquutSkMWOROp2cxmt0";
-    std::string grant_type = "password";
-    std::string scope = "openid";
-    // make a curl url-form-encoded request
-    std::string url = "https://keycloak.auth.apoorva64.com/realms/projet-secu/protocol/openid-connect/token";
-    CURL *curl;
-    CURLcode res;
-    std::string readBuffer;
-    curl = curl_easy_init();
-    if (curl) {
-
-        username = curl_easy_escape(curl, username.c_str(), (int) username.length());
-        password = curl_easy_escape(curl, password.c_str(), (int) password.length());
-        client_id = curl_easy_escape(curl, client_id.c_str(), (int) client_id.length());
-        client_secret = curl_easy_escape(curl, client_secret.c_str(), (int) client_secret.length());
-        grant_type = curl_easy_escape(curl, grant_type.c_str(), (int) grant_type.length());
-        scope = curl_easy_escape(curl, scope.c_str(), (int) scope.length());
-
-        std::string postFields =
-                "username=" + username + "&password=" + password + "&client_id=" + client_id + "&client_secret=" +
-                client_secret + "&grant_type=" + grant_type + "&scope=" + scope;
-        std::cout << "Post fields: " << postFields << std::endl;
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postFields.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-
-        res = curl_easy_perform(curl);
-        if (res != CURLE_OK) {
-            logger->error("Curl error: {}", curl_easy_strerror(res));
-            return;
-        }
-        std::cout << "Curl response: " << res << std::endl;
-        // parse res into json
-        nlohmann::json json = nlohmann::json::parse(readBuffer);
-        std::string access_token = json["access_token"];
-        std::cout << "Access token: " << access_token << std::endl;
-        std::string refresh_token = json["refresh_token"];
-        auto decoded = jwt::decode(access_token);
-        auto jwks = jwt::parse_jwks(RAW_JWKS);
-        auto jwk = jwks.get_jwk(decoded.get_key_id());
-
-        auto issuer = decoded.get_issuer();
-        auto x5c = jwk.get_x5c_key_value();
-
-        if (!x5c.empty() && !issuer.empty()) {
-            logger->debug("Verifying token...");
-            auto verifier =
-                    jwt::verify()
-                            .allow_algorithm(
-                                    jwt::algorithm::rs256(jwt::helper::convert_base64_der_to_pem(x5c), "", "", ""));
-            verifier.verify(decoded);
-
-        }
-
-
-        curl_easy_cleanup(curl);
-
+    Command command(LOGIN, {OpenSSL::base64_encode(username), OpenSSL::base64_encode(password)});
+    this->send(command.toString());
+    std::string response = this->receiveString();
+    if (response == "ERROR") {
+        std::cout << "Login failed!" << std::endl;
+        return;
     }
     std::cout << "Login successful!" << std::endl;
 }
