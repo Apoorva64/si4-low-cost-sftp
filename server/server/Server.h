@@ -7,6 +7,8 @@
 
 
 #include "SocketCommunication/SocketCommunication.h"
+#include "jwt-cpp/jwt.h"
+#include "nlohmann/json.hpp"
 
 class Server : public SocketCommunication {
 
@@ -18,7 +20,7 @@ public:
 
     Server(int inPort1, int outPort);
 
-    void uploadFile(std::vector<std::string> args) const;
+    void uploadFile(std::vector<std::string> args);
 
     void downloadFile(std::vector<std::string> args) const;
 
@@ -27,6 +29,21 @@ public:
     void deleteFile(std::vector<std::string> args) const;
 
     void login(std::vector<std::string> args) const;
+
+    void refreshServerTokens();
+
+    std::string ressourceServerAccessToken = "";
+
+
+
+    void createKeycloakResource(std::string filename, const std::string& owner);
+
+
+    nlohmann::json_abi_v3_11_2::basic_json<> login(std::string username, std::string password) const;
+
+    jwt::verifier<jwt::default_clock, jwt::traits::kazuho_picojson> verifier;
+
+    void verifyOrRefreshServerTokens();
 };
 
 
