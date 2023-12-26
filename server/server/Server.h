@@ -17,6 +17,16 @@ public:
     explicit Server(int inPort1);
 
     Server(int inPort1, int outPort);
+
+    void uploadFile(std::vector<std::string> args) const;
+
+    void downloadFile(std::vector<std::string> args) const;
+
+    void listFiles() const;
+
+    void deleteFile(std::vector<std::string> args) const;
+
+    void login(std::vector<std::string> args) const;
 };
 
 

@@ -10,6 +10,7 @@
 #include "curl/curl.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
+#include "Command/Command.h"
 #include <nlohmann/json.hpp>
 #include <jwt-cpp/jwt.h>
 #include <error.h>
@@ -71,12 +72,14 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
     std::string encodedFileContent = OpenSSL::base64_encode(
             std::string((char *) encryptedFileContent, paddedFileContentSize));
     logger->debug("Encrypted file contents: {}", encodedFileContent);
-    this->send("upload|" + filename_ + "|" + encodedFileContent);
+    Command command(UPLOAD, {filename_, encodedFileContent});
+    this->send(command.toString());
 }
 
 std::string Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param) {
     logger->info("Downloading file: {}", filename);
-    this->send("download|" + filename_);
+    Command command(DOWNLOAD, {filename_});
+    this->send(command.toString());
     std::string fileContents = this->receiveString();
     logger->debug("File contents: {}", fileContents);
 

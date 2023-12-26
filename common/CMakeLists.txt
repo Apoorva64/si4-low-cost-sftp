@@ -4,6 +4,9 @@
 add_library(common STATIC
         SocketCommunication/SocketCommunication.cpp
         SocketCommunication/SocketCommunication.h
+        Command/CommandEnum.h
+        Command/Command.cpp
+        Command/Command.h
 )
 
 
