@@ -30,20 +30,14 @@ Server::Server(int inPort1, int outPort) : SocketCommunication(inPort1, outPort)
     // create files folder if not exists
     std::filesystem::create_directory(FILES_FOLDER);
     refreshServerTokens();
-    auto jwks = jwt::parse_jwks(RAW_JWKS);
-    auto jwk = jwks.get_jwk(decoded.get_key_id());
-    auto x5c = jwk.get_x5c_key_value();
-    this->verifier =
-            jwt::verify()
-                    .allow_algorithm(
-                            jwt::algorithm::rs256(jwt::helper::convert_base64_der_to_pem(x5c), "", "", ""));
+
 }
 
 Server::Server(int inPort1) : SocketCommunication(inPort1, 0) {
 
 }
 
-void Server::handleMessage(const std::string &msg) const {
+void Server::handleMessage(const std::string &msg)  {
     SocketCommunication::handleMessage(msg);
     Command command(msg);
 
@@ -70,14 +64,14 @@ void Server::handleMessage(const std::string &msg) const {
 
 }
 
-void Server::deleteFile(std::vector<std::string> args) const {
+void Server::deleteFile(std::vector<std::string> args)  {
     const std::string &filename = args[0];
     logger->info("Deleting file: {}", filename);
     std::filesystem::remove(std::string(FILES_FOLDER) + "/" + filename);
     logger->info("File deleted!");
 }
 
-void Server::listFiles() const {
+void Server::listFiles()  {
     logger->info("Listing files...");
     std::string files;
     for (const auto &entry: std::filesystem::directory_iterator(FILES_FOLDER)) {
@@ -88,7 +82,7 @@ void Server::listFiles() const {
     logger->info("Files sent!");
 }
 
-void Server::downloadFile(std::vector<std::string> args) const {
+void Server::downloadFile(std::vector<std::string> args)  {
     const std::string &filename = args[0];
     logger->info("Downloading file: {}", filename);
     std::ifstream file(std::string(FILES_FOLDER) + "/" + filename, std::ios::binary);
@@ -121,7 +115,7 @@ void Server::uploadFile(std::vector<std::string> args) {
 //    createKeycloakResource(filename, "admin");
 }
 
-void Server::login(std::vector<std::string> args) const {
+void Server::login(std::vector<std::string> args) {
     std::string username = args[0];
     std::string password = args[1];
     logger->info("Logging in user: {}", username);
@@ -143,7 +137,7 @@ void Server::login(std::vector<std::string> args) const {
 }
 
 
-nlohmann::json Server::login(std::string username, std::string password) const {
+nlohmann::json Server::login(std::string username, std::string password)  {
 
     // Let's declare a stream
     std::ostringstream stream;
@@ -188,7 +182,13 @@ nlohmann::json Server::login(std::string username, std::string password) const {
     auto decoded = jwt::decode(access_token);
 
     auto issuer = decoded.get_issuer();
-
+    auto jwks = jwt::parse_jwks(RAW_JWKS);
+    auto jwk = jwks.get_jwk(decoded.get_key_id());
+    auto x5c = jwk.get_x5c_key_value();
+    this->verifier =
+            this->verifier
+                    .allow_algorithm(
+                            jwt::algorithm::rs256(jwt::helper::convert_base64_der_to_pem(x5c), "", "", ""));
     if (!issuer.empty()) {
         logger->debug("Verifying token...");
         verifier.verify(decoded);
@@ -199,12 +199,13 @@ nlohmann::json Server::login(std::string username, std::string password) const {
 
 void Server::refreshServerTokens() {
     logger->info("Refreshing server tokens...");
-    auto decoded = this->login("admin", "XQ2eTsshRNt2NJD");
-    this->ressourceServerAccessToken = decoded["access_token"];
+    auto decoded = this->login("admin", "ZKqudE5ZDxUA7xf");
+    this->resourceServerAccessToken = decoded["access_token"];
 }
+
 void Server::verifyOrRefreshServerTokens() {
     logger->info("Verifying server tokens...");
-    auto decoded = jwt::decode(this->ressourceServerAccessToken);
+    auto decoded = jwt::decode(this->resourceServerAccessToken);
     auto issuer = decoded.get_issuer();
     if (!issuer.empty()) {
         logger->debug("Verifying token...");
@@ -231,7 +232,7 @@ void Server::createKeycloakResource(std::string filename, const std::string &own
     struct curl_slist *headers = nullptr;
     headers = curl_slist_append(headers, "Content-Type: application/json");
     // set access token
-    headers = curl_slist_append(headers, ("Authorization: Bearer " + this->ressourceServerAccessToken).c_str());
+    headers = curl_slist_append(headers, ("Authorization: Bearer " + this->resourceServerAccessToken).c_str());
     easy.add<CURLOPT_HTTPHEADER>(headers);
     nlohmann::json j = nlohmann::json();
     j["name"] = filename;

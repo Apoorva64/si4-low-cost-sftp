@@ -13,7 +13,7 @@
 class Server : public SocketCommunication {
 
 
-    void handleMessage(const std::string &msg) const override;
+    void handleMessage(const std::string &msg)  override;
 
 public:
     explicit Server(int inPort1);
@@ -22,28 +22,31 @@ public:
 
     void uploadFile(std::vector<std::string> args);
 
-    void downloadFile(std::vector<std::string> args) const;
+    void downloadFile(std::vector<std::string> args) ;
 
-    void listFiles() const;
+    void listFiles() ;
 
-    void deleteFile(std::vector<std::string> args) const;
+    void deleteFile(std::vector<std::string> args) ;
 
-    void login(std::vector<std::string> args) const;
 
     void refreshServerTokens();
 
-    std::string ressourceServerAccessToken = "";
+    std::string resourceServerAccessToken;
 
 
 
     void createKeycloakResource(std::string filename, const std::string& owner);
 
 
-    nlohmann::json_abi_v3_11_2::basic_json<> login(std::string username, std::string password) const;
 
-    jwt::verifier<jwt::default_clock, jwt::traits::kazuho_picojson> verifier;
+    jwt::verifier<jwt::default_clock, jwt::traits::kazuho_picojson> verifier = jwt::verify();
 
     void verifyOrRefreshServerTokens();
+
+    nlohmann::json login(std::string username, std::string password);
+
+    void login(std::vector<std::string> args);
+
 };
 
 

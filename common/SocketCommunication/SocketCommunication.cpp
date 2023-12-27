@@ -116,13 +116,13 @@ std::string SocketCommunication::receiveString() const {
     return fullMsg;
 }
 
-void SocketCommunication::handleMessage(const std::string &msg) const {
+void SocketCommunication::handleMessage(const std::string &msg)  {
     if (msg == "Ping") {
         this->send("Pong");
     }
 }
 
-[[noreturn]] void SocketCommunication::run() const {
+[[noreturn]] void SocketCommunication::run()  {
     while (true) {
         std::string msg = this->receiveString();
         this->handleMessage(msg);

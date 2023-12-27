@@ -20,9 +20,8 @@ public:
 
     [[nodiscard]] std::string receiveString() const;
 
-    virtual void handleMessage(const std::string& msg) const;
+    virtual void handleMessage(const std::string& msg) ;
 
-    [[noreturn]] void run() const;
 
     void test() const;
 
@@ -31,6 +30,8 @@ public:
     int sndmsgWrapper(char *msg, int port) const;
 
     std::shared_ptr<spdlog::logger> logger;
+
+    [[noreturn]] void run();
 };
 
 
