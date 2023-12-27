@@ -199,7 +199,7 @@ nlohmann::json Server::login(std::string username, std::string password)  {
 
 void Server::refreshServerTokens() {
     logger->info("Refreshing server tokens...");
-    auto decoded = this->login("admin", "ZKqudE5ZDxUA7xf");
+    auto decoded = this->login("admin", "ZKqudE5ZDxUA7xfX");
     this->resourceServerAccessToken = decoded["access_token"];
 }
 
