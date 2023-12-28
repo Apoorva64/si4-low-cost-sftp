@@ -194,12 +194,12 @@ nlohmann::json Server::login(std::string username, std::string password)  {
         verifier.verify(decoded);
         return json;
     }
-    throw std::runtime_error("Token verification failed");
+    throw std::runtime_error("Token verification failed: ");
 }
 
 void Server::refreshServerTokens() {
     logger->info("Refreshing server tokens...");
-    auto decoded = this->login("admin", "ZKqudE5ZDxUA7xfX");
+    auto decoded = this->login("admin", "ZKqudE5ZDxUA7xf");
     this->resourceServerAccessToken = decoded["access_token"];
 }
 
