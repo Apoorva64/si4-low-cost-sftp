@@ -18,16 +18,23 @@ class Client : public CLI::App, public SocketCommunication {
 public:
 
     Client(int inPort, int outPort, int argc, char **argv);
+    std::string accessToken;
+    std::string refreshToken;
     void upload();
 
 
-    std::string download(const std::string &filename_, const OpenSSL_AES_Keys& param);
+    std::string download(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &accessToken);
 
     void download();
 
-    void upload(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &base64FileContent);
+    void upload(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &base64FileContent,
+                const std::string &accessToken);
 
     void login();
+
+    void RefreshToken();
+
+    void RefreshIfNeeded();
 };
 
 

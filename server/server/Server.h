@@ -47,6 +47,12 @@ public:
 
     void login(std::vector<std::string> args);
 
+    void refreshToken(std::vector<std::string> args);
+
+    nlohmann::json refreshToken(std::string refresh_token);
+
+
+    void checkPermissionKeycloak(std::string filename, const std::string &owner, std::string permission);
 };
 
 
