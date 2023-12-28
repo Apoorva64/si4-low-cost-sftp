@@ -16,6 +16,7 @@ enum CommandEnum {
     LIST = 3,
     DELETE = 4,
     UNKNOWN = 5,
+    REFRESH_TOKEN = 6,
 };
 
 #endif //SECTRANS_COMMANDENUM_H

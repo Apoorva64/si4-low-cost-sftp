@@ -5,13 +5,10 @@
 #include "Client.h"
 #include "AES.h"
 #include "OpenSSL.h"
-#include <crypt.h>
 #include "CLI11.hpp"
-#include "curl/curl.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 #include "Command/Command.h"
-#include <nlohmann/json.hpp>
 #include <jwt-cpp/jwt.h>
 #include <error.h>
 
@@ -42,10 +39,12 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
     this->start();
     this->test();
     this->parse(argc, argv);
+
 }
 
 
-void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &base64FileContent) {
+void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &base64FileContent,
+                    const std::string &accessToken) {
     logger->info("Uploading file: {}", filename);
     unsigned int fileContentSize = base64FileContent.length();
 
@@ -72,11 +71,12 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
     std::string encodedFileContent = OpenSSL::base64_encode(
             std::string((char *) encryptedFileContent, paddedFileContentSize));
     logger->debug("Encrypted file contents: {}", encodedFileContent);
-    Command command(UPLOAD, {filename_, encodedFileContent});
+    Command command(UPLOAD, {filename_, encodedFileContent, accessToken});
     this->send(command.toString());
 }
 
-std::string Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param) {
+std::string
+Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &accessToken) {
     logger->info("Downloading file: {}", filename);
     Command command(DOWNLOAD, {filename_});
     this->send(command.toString());
@@ -110,7 +110,8 @@ void Client::upload() {
         logger->debug("File contents size: {}", size);
         std::string fileContentString(reinterpret_cast<char *>(fileContent), size);
         std::string base64FileContent = OpenSSL::base64_encode(fileContentString);
-        this->upload(this->filename, aesKeys, base64FileContent);
+        this->RefreshIfNeeded();
+        this->upload(this->filename, aesKeys, base64FileContent, this->accessToken);
     } else {
         logger->error("Failed to read file");
     }
@@ -123,7 +124,8 @@ void Client::download() {
     OpenSSL_AES_Keys aesKeys;
     aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
     aesKeys.iv = "a7fe8fed9f4v8e5d";
-    std::string decrypted = this->download(this->filename, aesKeys);
+    this->RefreshIfNeeded();
+    std::string decrypted = this->download(this->filename, aesKeys, this->accessToken);
     logger->debug("Decrypted file contents: {}", decrypted);
     // base64 decode
     std::string decoded = OpenSSL::base64_decode(decrypted);
@@ -133,10 +135,6 @@ void Client::download() {
     file.close();
 }
 
-size_t WriteCallback(char *contents, size_t size, size_t nmemb, void *userp) {
-    ((std::string *) userp)->append((char *) contents, size * nmemb);
-    return size * nmemb;
-}
 
 void Client::login() {
     spdlog::set_level(spdlog::level::debug);
@@ -153,9 +151,50 @@ void Client::login() {
     std::string response = this->receiveString();
     if (response == "ERROR") {
         std::cout << "Login failed!" << std::endl;
-        return;
+        throw std::runtime_error("Login failed");
     }
     std::cout << "Login successful!" << std::endl;
+    logger->debug("Response: {}", response);
+    // parse response
+    std::string access = response.substr(0, response.find(SPERATOR));
+    std::string refresh = response.substr(response.find(SPERATOR) + 1);
+    logger->debug("Access token: {}", access);
+    logger->debug("Refresh token: {}", refresh);
+    this->accessToken = access;
+    this->refreshToken = refresh;
+}
+
+void Client::RefreshToken(){
+    if (!this->refreshToken.empty()) {
+        Command command(REFRESH_TOKEN, {this->refreshToken});
+        this->send(command.toString());
+        std::string response = this->receiveString();
+        if (response == "ERROR") {
+            std::cout << "Refresh failed!" << std::endl;
+            login();
+            return;
+        }
+        std::cout << "Refresh successful!" << std::endl;
+        logger->debug("Response: {}", response);
+        // parse response
+        std::string access = response.substr(0, response.find(SPERATOR));
+        std::string refresh = response.substr(response.find(SPERATOR) + 1);
+        logger->debug("Access token: {}", access);
+        logger->debug("Refresh token: {}", refresh);
+        this->accessToken = access;
+        this->refreshToken = refresh;
+    } else {
+        login();
+    }
+}
+
+void Client::RefreshIfNeeded(){
+    auto decoded = jwt::decode(this->accessToken);
+    auto exp = decoded.get_expires_at();
+    auto now = std::chrono::system_clock::now();
+    if (exp < now - std::chrono::seconds(60)){
+        this->RefreshToken();
+    }
 }
 
 
