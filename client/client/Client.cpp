@@ -73,14 +73,25 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
     logger->debug("Encrypted file contents: {}", encodedFileContent);
     Command command(UPLOAD, {filename_, encodedFileContent, accessToken});
     this->send(command.toString());
+    std::string response = this->receiveString();
+    logger->debug("Response: {}", response);
+    if (response.substr(0, 2) != "OK") {
+        std::cout << "Upload failed!" << std::endl;
+        throw std::runtime_error("Upload failed");
+    }
+    std::cout << "Upload successful!" << std::endl;
 }
 
 std::string
 Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &accessToken) {
     logger->info("Downloading file: {}", filename);
-    Command command(DOWNLOAD, {filename_});
+    Command command(DOWNLOAD, {filename_, accessToken});
     this->send(command.toString());
     std::string fileContents = this->receiveString();
+    if (fileContents == "ERROR") {
+        std::cout << "Download failed!" << std::endl;
+        throw std::runtime_error("Download failed");
+    }
     logger->debug("File contents: {}", fileContents);
 
     // decode base64
@@ -95,6 +106,7 @@ Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param, co
 
 
 void Client::upload() {
+    this->RefreshIfNeededOrLogin();
     std::cout << "Uploading file: " << this->filename << std::endl;
     OpenSSL_AES_Keys aesKeys;
 
@@ -110,7 +122,7 @@ void Client::upload() {
         logger->debug("File contents size: {}", size);
         std::string fileContentString(reinterpret_cast<char *>(fileContent), size);
         std::string base64FileContent = OpenSSL::base64_encode(fileContentString);
-        this->RefreshIfNeeded();
+        this->RefreshIfNeededOrLogin();
         this->upload(this->filename, aesKeys, base64FileContent, this->accessToken);
     } else {
         logger->error("Failed to read file");
@@ -124,7 +136,7 @@ void Client::download() {
     OpenSSL_AES_Keys aesKeys;
     aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
     aesKeys.iv = "a7fe8fed9f4v8e5d";
-    this->RefreshIfNeeded();
+    this->RefreshIfNeededOrLogin();
     std::string decrypted = this->download(this->filename, aesKeys, this->accessToken);
     logger->debug("Decrypted file contents: {}", decrypted);
     // base64 decode
@@ -164,36 +176,36 @@ void Client::login() {
     this->refreshToken = refresh;
 }
 
-void Client::RefreshToken(){
-    if (!this->refreshToken.empty()) {
-        Command command(REFRESH_TOKEN, {this->refreshToken});
-        this->send(command.toString());
-        std::string response = this->receiveString();
-        if (response == "ERROR") {
-            std::cout << "Refresh failed!" << std::endl;
-            login();
-            return;
-        }
-        std::cout << "Refresh successful!" << std::endl;
-        logger->debug("Response: {}", response);
-        // parse response
-        std::string access = response.substr(0, response.find(SPERATOR));
-        std::string refresh = response.substr(response.find(SPERATOR) + 1);
-        logger->debug("Access token: {}", access);
-        logger->debug("Refresh token: {}", refresh);
-        this->accessToken = access;
-        this->refreshToken = refresh;
-    } else {
+void Client::RefreshToken() {
+    Command command(REFRESH_TOKEN, {this->refreshToken});
+    this->send(command.toString());
+    std::string response = this->receiveString();
+    if (response == "ERROR") {
+        std::cout << "Refresh failed!" << std::endl;
         login();
+        return;
     }
+    std::cout << "Refresh successful!" << std::endl;
+    logger->debug("Response: {}", response);
+    // parse response
+    std::string access = response.substr(0, response.find(SPERATOR));
+    std::string refresh = response.substr(response.find(SPERATOR) + 1);
+    logger->debug("Access token: {}", access);
+    logger->debug("Refresh token: {}", refresh);
+    this->accessToken = access;
+    this->refreshToken = refresh;
 }
 
-void Client::RefreshIfNeeded(){
-    auto decoded = jwt::decode(this->accessToken);
-    auto exp = decoded.get_expires_at();
-    auto now = std::chrono::system_clock::now();
-    if (exp < now - std::chrono::seconds(60)){
-        this->RefreshToken();
+void Client::RefreshIfNeededOrLogin() {
+    if (!this->refreshToken.empty()) {
+        auto decoded = jwt::decode(this->accessToken);
+        auto exp = decoded.get_expires_at();
+        auto now = std::chrono::system_clock::now();
+        if (exp < now - std::chrono::seconds(60)) {
+            this->RefreshToken();
+        }
+    } else {
+        login();
     }
 }
 
