@@ -9,7 +9,11 @@
 #include "SocketCommunication/SocketCommunication.h"
 #include "jwt-cpp/jwt.h"
 #include "nlohmann/json.hpp"
-
+struct default_clock {
+    [[nodiscard]] jwt::date now() const {
+        return jwt::date(std::chrono::system_clock::now());
+    }
+};
 class Server : public SocketCommunication {
 
 
@@ -39,7 +43,7 @@ public:
 
 
 
-    jwt::verifier<jwt::default_clock, jwt::traits::kazuho_picojson> verifier = jwt::verify();
+    jwt::verifier<default_clock, jwt::traits::kazuho_picojson> verifier = jwt::verify<default_clock, jwt::traits::kazuho_picojson>(default_clock{}).leeway(0);
 
     void verifyOrRefreshServerTokens();
 

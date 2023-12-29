@@ -6,6 +6,7 @@
 #include <fstream>
 #include <filesystem>
 #include <error.h>
+#include <chrono>
 #include "Server.h"
 #include "OpenSSL.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -38,31 +39,37 @@ Server::Server(int inPort1) : SocketCommunication(inPort1, 0) {
 }
 
 void Server::handleMessage(const std::string &msg) {
-    SocketCommunication::handleMessage(msg);
-    Command command(msg);
+    try {
+        SocketCommunication::handleMessage(msg);
+        Command command(msg);
 
-    switch (command.commandEnum) {
-        case LOGIN:
-            login(command.args);
-            break;
-        case UPLOAD:
-            uploadFile(command.args);
-            break;
-        case DOWNLOAD:
-            downloadFile(command.args);
-            break;
-        case LIST:
-            listFiles();
-            break;
-        case DELETE:
-            deleteFile(command.args);
-            break;
-        case REFRESH_TOKEN:
-            refreshToken(command.args);
-            break;
-        case UNKNOWN:
-            logger->error("Unknown command: {}", command.toString());
-            break;
+        switch (command.commandEnum) {
+            case LOGIN:
+                login(command.args);
+                break;
+            case UPLOAD:
+                uploadFile(command.args);
+                break;
+            case DOWNLOAD:
+                downloadFile(command.args);
+                break;
+            case LIST:
+                listFiles();
+                break;
+            case DELETE:
+                deleteFile(command.args);
+                break;
+            case REFRESH_TOKEN:
+                refreshToken(command.args);
+                break;
+            case UNKNOWN:
+                logger->error("Unknown command: {}", command.toString());
+                break;
+        }
+    }
+    catch (std::exception &e) {
+        logger->error("Error: {}", e.what());
+        send("ERROR");
     }
 
 }
@@ -88,11 +95,11 @@ void Server::listFiles() {
 void Server::downloadFile(std::vector<std::string> args) {
     const std::string &filename = args[0];
     const std::string &user_access_token = args[1];
+    logger->info("Downloading file: {} for token: {}", filename, user_access_token);
     auto decoded = jwt::decode(user_access_token);
     // verify token
     verifier.verify(decoded);
-    std::string sub = decoded.get_subject();
-    checkPermissionKeycloak(filename, sub, "download");
+    checkPermissionKeycloak(filename, user_access_token, "download");
     logger->info("Downloading file: {}", filename);
     std::ifstream file(std::string(FILES_FOLDER) + "/" + filename, std::ios::binary);
     if (!file.is_open()) {
@@ -129,6 +136,7 @@ void Server::uploadFile(std::vector<std::string> args) {
     logger->info("Owner: {}:{}", sub, filename);
     createKeycloakResource(filename, sub);
     logger->info("Keycloak resource created!");
+    send("OK");
 }
 
 void Server::login(std::vector<std::string> args) {
@@ -154,7 +162,7 @@ void Server::login(std::vector<std::string> args) {
         send(access_token + SPERATOR + refresh_token);
     } catch (std::exception &e) {
         logger->error("Login failed: {}", e.what());
-        send("ERROR");
+        throw std::runtime_error("Login failed");
     }
 }
 
@@ -208,12 +216,13 @@ nlohmann::json Server::login(std::string username, std::string password) {
     auto jwk = jwks.get_jwk(decoded.get_key_id());
     auto x5c = jwk.get_x5c_key_value();
     this->verifier =
-            jwt::verify()
+            this->verifier
                     .allow_algorithm(
                             jwt::algorithm::rs256(jwt::helper::convert_base64_der_to_pem(x5c), "", "", ""));
     if (!issuer.empty()) {
         logger->debug("Verifying token...");
         verifier.verify(decoded);
+        logger->info("Token verified!");
         return json;
     }
     throw std::runtime_error("Token verification failed: ");
@@ -231,8 +240,14 @@ void Server::verifyOrRefreshServerTokens() {
     auto issuer = decoded.get_issuer();
     if (!issuer.empty()) {
         logger->debug("Verifying token...");
-        verifier.verify(decoded);
-        return;
+        try {
+            verifier.verify(decoded);
+        }
+        catch (std::exception &e) {
+            logger->warn("Token verification failed: {}", e.what());
+            refreshServerTokens();
+            return;
+        }
     }
     refreshServerTokens();
 }
@@ -271,8 +286,7 @@ void Server::createKeycloakResource(std::string filename, const std::string &own
         easy.perform();
     } catch (curl::curl_easy_exception &error) {
         logger->error("Error while performing request: {}", error.what());
-        send("ERROR");
-        return;
+        throw std::runtime_error("Error while performing request");
     }
 
     response = stream.str();
@@ -283,9 +297,13 @@ void Server::createKeycloakResource(std::string filename, const std::string &own
 }
 
 
-void Server::checkPermissionKeycloak(std::string filename, const std::string& owner, std::string permission) {
-    logger->info("Checking permission: {} for file: {}", permission, filename);
-    std::string checkPermissionUrl = "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu/clients/1aa674a2-3169-4041-bc82-dbe6cf1de68c/authz/resource-server/resource";
+void
+Server::checkPermissionKeycloak(std::string filename, const std::string &requesterAccessToken, std::string permission) {
+    auto decoded = jwt::decode(requesterAccessToken);
+    logger->info("Checking permission: {} for file: {} for user: {}", permission, filename, decoded.get_subject());
+    // verify token
+    verifier.verify(decoded);
+    std::string checkPermissionUrl = "https://keycloak.auth.apoorva64.com/realms/projet-secu/protocol/openid-connect/token";
     // Let's declare a stream
     std::ostringstream stream;
 
@@ -298,33 +316,43 @@ void Server::checkPermissionKeycloak(std::string filename, const std::string& ow
 
     // set Content-Type
     struct curl_slist *headers = nullptr;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded");
     // set access token
-    headers = curl_slist_append(headers, ("Authorization: Bearer " + this->resourceServerAccessToken).c_str());
+    headers = curl_slist_append(headers, ("Authorization: Bearer " + requesterAccessToken).c_str());
     easy.add<CURLOPT_HTTPHEADER>(headers);
-    nlohmann::json j = nlohmann::json();
-    j["name"] = filename;
-    j["owner"] = owner;
-    j["ownerManagedAccess"] = true;
-    j["scopes"] = nlohmann::json::array(
-            {permission}
-    );
 
-    std::string postFields = j.dump();
-    try {
-        easy.add<CURLOPT_POSTFIELDS>(postFields.c_str());
-        easy.perform();
-    } catch (curl::curl_easy_exception &error) {
-        logger->error("Error while performing request: {}", error.what());
-        send("ERROR");
-        return;
-    }
+    std::string grant_type = "urn:ietf:params:oauth:grant-type:uma-ticket";
+    std::string audience = "projet-secu";
+    std::string permission2 = filename + "#" + permission;
+    std::string response_mode = "decision";
+    std::string submit_request = "true";
+    grant_type = curl_easy_escape(easy.get_curl(), grant_type.c_str(), (int) grant_type.length());
+    audience = curl_easy_escape(easy.get_curl(), audience.c_str(), (int) audience.length());
+    permission2 = curl_easy_escape(easy.get_curl(), permission2.c_str(), (int) permission2.length());
+    response_mode = curl_easy_escape(easy.get_curl(), response_mode.c_str(), (int) response_mode.length());
+    submit_request = curl_easy_escape(easy.get_curl(), submit_request.c_str(), (int) submit_request.length());
 
+    std::string postFields =
+            "grant_type=" + grant_type + "&audience=" + audience + "&permission=" + permission2 + "&response_mode=" +
+            response_mode + "&submit_request=" + submit_request;
+
+    easy.add<CURLOPT_POSTFIELDS>(postFields.c_str());
+    easy.perform();
     response = stream.str();
     logger->info("Response: {}", response);
     // parse response
     nlohmann::json json = nlohmann::json::parse(response);
-    logger->debug("JSON: {}", json.dump());
+    // check if result is a key
+    if (json.find("result") != json.end()) {
+        bool result = json["result"];
+        if (result) {
+            logger->info("Permission granted for file: {} for user: {}", filename, decoded.get_subject());
+            return;
+        }
+
+    }
+    logger->error("Permission denied!");
+    throw std::runtime_error("Permission denied");
 }
 
 
@@ -376,7 +404,7 @@ void Server::refreshToken(std::vector<std::string> args) {
         send(jsonResponse["access_token"].dump() + SPERATOR + jsonResponse["refresh_token"].dump());
     } catch (std::exception &e) {
         logger->error("Refresh failed: {}", e.what());
-        send("ERROR");
+        throw std::runtime_error("Refresh failed");
     }
 }
 

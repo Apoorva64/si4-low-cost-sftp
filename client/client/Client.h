@@ -18,6 +18,7 @@ class Client : public CLI::App, public SocketCommunication {
 public:
 
     Client(int inPort, int outPort, int argc, char **argv);
+
     std::string accessToken;
     std::string refreshToken;
     void start() const;
@@ -35,7 +36,7 @@ public:
 
     void RefreshToken();
 
-    void RefreshIfNeeded();
+    void RefreshIfNeededOrLogin();
 };
 
 
