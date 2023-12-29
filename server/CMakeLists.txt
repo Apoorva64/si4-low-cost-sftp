@@ -5,4 +5,7 @@ add_executable(SecTransServer main.cpp
         server/Server.h
 )
 #INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
-target_link_libraries(SecTransServer libclient libserver AES OpenSSL common spdlog curlcpp nlohmann_json::nlohmann_json jwt-cpp)
+target_link_libraries(SecTransServer libclient libserver OpenSSL common spdlog curlcpp nlohmann_json::nlohmann_json jwt-cpp)
+
+# build release
+#set(CMAKE_BUILD_TYPE Release)

@@ -3,7 +3,6 @@
 //
 
 #include "Client.h"
-#include "AES.h"
 #include "OpenSSL.h"
 #include "CLI11.hpp"
 #include "spdlog/sinks/stdout_color_sinks.h"
