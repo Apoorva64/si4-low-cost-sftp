@@ -25,6 +25,9 @@
 #include <openssl/x509v3.h>
 #include <openssl/x509_vfy.h>
 #include <openssl/aes.h>
+#include <openssl/evp.h>
+#include <openssl/rsa.h>
+#include <openssl/engine.h>
 
 #include <memory>
 #include <vector>
@@ -220,6 +223,9 @@ public:
 
     [[nodiscard]] static std::string aes_encrypt(const std::string& message, const std::string& key, const std::string& iv);
     [[nodiscard]] static std::string aes_decrypt(const std::string& message, const std::string& key, const std::string& iv);
+    [[nodiscard]] static EVP_PKEY * rsa_key_generation();
+    [[nodiscard]] static std::string rsa_encrypt(EVP_PKEY *key, const std::string& message);
+    [[nodiscard]] static std::string rsa_decrypt(EVP_PKEY *key, const std::string& message);
 private:
 
     /**
