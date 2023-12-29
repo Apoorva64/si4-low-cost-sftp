@@ -42,6 +42,10 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
 
 }
 
+void Client::start() const {
+    SocketCommunication::start();
+}
+
 
 void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &base64FileContent,
                     const std::string &accessToken) {

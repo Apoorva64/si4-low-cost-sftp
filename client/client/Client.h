@@ -20,6 +20,7 @@ public:
     Client(int inPort, int outPort, int argc, char **argv);
     std::string accessToken;
     std::string refreshToken;
+    void start() const;
     void upload();
 
 
