@@ -17,6 +17,7 @@ enum CommandEnum {
     DELETE = 4,
     UNKNOWN = 5,
     REFRESH_TOKEN = 6,
+    INIT_SESSION = 7
 };
 
 #endif //SECTRANS_COMMANDENUM_H

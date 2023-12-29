@@ -44,6 +44,11 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
 
 void Client::start() const {
     SocketCommunication::start();
+
+    Command cmd(INIT_SESSION, {std::to_string(this->inPort)});
+    SocketCommunication::send(cmd.toString());
+    std::string newOutPort = SocketCommunication::receiveString();
+    this->logger->info("New Port {}", newOutPort);
 }
 
 

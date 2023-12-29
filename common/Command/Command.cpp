@@ -38,6 +38,7 @@ CommandEnum Command::getCommandEnum(const std::string &command) {
             {"2", DOWNLOAD},
             {"3", LIST},
             {"4", DELETE},
+            {"7", INIT_SESSION}
     };
 
     auto it = commandMap.find(command);
