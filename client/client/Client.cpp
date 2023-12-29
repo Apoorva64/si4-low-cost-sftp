@@ -95,7 +95,8 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
 std::string
 Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &accessToken) {
     logger->info("Downloading file: {}", filename);
-    Command command(DOWNLOAD, {filename_, accessToken});
+    std::string base64FileName = OpenSSL::base64_encode(filename_);
+    Command command(DOWNLOAD, {base64FileName, accessToken});
     this->send(command.toString());
     std::string fileContents = this->receiveString();
     if (fileContents == "ERROR") {
@@ -161,8 +162,8 @@ void Client::download() {
     aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
     aesKeys.iv = "a7fe8fed9f4v8e5d";
     this->RefreshIfNeededOrLogin();
-    std::string base64FileName = OpenSSL::base64_encode(this->filename);
-    std::string decrypted = this->download(base64FileName, aesKeys, this->accessToken);
+
+    std::string decrypted = this->download(this->filename, aesKeys, this->accessToken);
     logger->debug("Decrypted file contents: {}", decrypted);
     // base64 decode
     std::string decoded = OpenSSL::base64_decode(decrypted);

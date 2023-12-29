@@ -196,11 +196,12 @@ void Server::uploadFile(std::vector<std::string> args) {
     std::ofstream outfile(std::string(FILES_FOLDER) + "/" + base64Filename);
     outfile << fileContentsBase64;
     logger->info("File uploaded!");
+    std::string resourceId;
     try {
         logger->info("Creating keycloak resource...");
         logger->info("Owner: {}:{}", sub, filename);
         nlohmann::json json = createKeycloakResource(filename, sub);
-        std::string resourceId = json["_id"];
+         resourceId = json["_id"];
         logger->info("Keycloak resource created!");
         // append resource id to file
         outfile << SPERATOR << resourceId;
@@ -213,6 +214,19 @@ void Server::uploadFile(std::vector<std::string> args) {
         // delete file
         std::filesystem::remove(std::string(FILES_FOLDER) + "/" + base64Filename);
         throw std::runtime_error("Error while creating keycloak resource");
+    }
+
+    try {
+        logger->info("Adding default permissions...");
+        addDefaultPermissionsKeycloak(resourceId, user_access_token);
+        logger->info("Default permissions added!");
+    }
+    catch (std::exception &e) {
+        logger->error("Error: {}", e.what());
+        // delete file
+        std::filesystem::remove(std::string(FILES_FOLDER) + "/" + base64Filename);
+        deleteKeycloakResource(filename);
+        throw std::runtime_error("Error while adding default permissions");
     }
 
 
@@ -522,3 +536,49 @@ void Server::refreshToken(std::vector<std::string> args) {
     }
 }
 
+
+
+void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::string &ownerAccessToken) {
+    logger->info("Adding default permissions for file: {}", resourceId);
+    std::string permissionUrl = "https://keycloak.auth.apoorva64.com/realms/projet-secu/account/resources/" + resourceId + "/permissions";
+    // get preffered_username from access token
+    auto decoded = jwt::decode(ownerAccessToken);
+    std::string username = nlohmann::json::parse(decoded.get_payload())["preferred_username"];
+    logger->info("Owner: {}", username);
+
+    // Let's declare a stream
+    std::ostringstream stream;
+
+    // We are going to put the request's output in the previously declared stream
+    curl::curl_ios<std::ostringstream> ios(stream);
+    curl::curl_easy easy(ios);
+    easy.add<CURLOPT_URL>(permissionUrl.c_str());
+    easy.add<CURLOPT_FOLLOWLOCATION>(1L);
+    std::string response;
+
+    // set Content-Type
+    struct curl_slist *headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    // set access token
+    headers = curl_slist_append(headers, ("Authorization: Bearer " + ownerAccessToken).c_str());
+    easy.add<CURLOPT_HTTPHEADER>(headers);
+    nlohmann::json owner = nlohmann::json();
+    owner["username"] = username;
+    owner["scopes"] = nlohmann::json::array(
+            {"delete", "download"}
+    );
+
+    nlohmann::json j = nlohmann::json::array({owner});
+    // PUT request
+    std::string postFields = j.dump();
+    try {
+        easy.add<CURLOPT_CUSTOMREQUEST>("PUT");
+        easy.add<CURLOPT_POSTFIELDS>(postFields.c_str());
+        easy.perform();
+    } catch (curl::curl_easy_exception &error) {
+        logger->error("Error while performing request: {}", error.what());
+        throw std::runtime_error("Error while performing request");
+    }
+
+    logger->info("Default permissions added!");
+}
