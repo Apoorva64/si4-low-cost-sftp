@@ -5,26 +5,20 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include <error.h>
-#include <chrono>
 #include "Server.h"
 #include "OpenSSL.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-#include "Command/CommandEnum.h"
 #include "Command/Command.h"
 
 #include "curl_easy.h"
 #include "curl_pair.h"
-#include "curl_form.h"
 #include "curl_exception.h"
-#include "../../cmake-build-debug/_deps/nlohmann_json-src/include/nlohmann/json.hpp"
 #include "jwt-cpp/jwt.h"
 
 #define SPERATOR '|'
 #define FILES_FOLDER "files"
 //https://keycloak.auth.apoorva64.com/realms/projet-secu/protocol/openid-connect/certs
 std::string RAW_JWKS = R"({"keys":[{"kid":"9cgFE7e849rMB0fxe2HEud-3noZz-dBPEpdcZHOLOwY","kty":"RSA","alg":"RS256","use":"sig","n":"1f8yK8W9dOu2GXvA4pZAxVQLeKkLiU5UsQs0Eyux64yqjMiO9hhRXlwaLLH5aG4wqGRmcFUYBS4-LrkTzyTTrNPIurcLTm5qRhMb0ZGyv0uYZQvxRHvGjg6ZmGrv9KNlBcwJoVRAZ_kvXRlBGrDYgCkqpx7yzgsAPDf9Aqc_PSjZl4Ldxk64sz5-c39rOdLN2QW96ypQlp-N6hlINmwcFXiRcMhsA47TCKmlRIhfqFup3aaN8ishUyIbemrHZi_RsdJubq8Ddf32PIkaGxS2UMQOLMBEhUbjoCob0Vd0C00o_mi4eGR9eAe070lVkLBF9Z6IfTT5J5QC9l0soPNlHw","e":"AQAB","x5c":["MIICpTCCAY0CBgGMlzrSBDANBgkqhkiG9w0BAQsFADAWMRQwEgYDVQQDDAtwcm9qZXQtc2VjdTAeFw0yMzEyMjMxNTA5MjNaFw0zMzEyMjMxNTExMDNaMBYxFDASBgNVBAMMC3Byb2pldC1zZWN1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1f8yK8W9dOu2GXvA4pZAxVQLeKkLiU5UsQs0Eyux64yqjMiO9hhRXlwaLLH5aG4wqGRmcFUYBS4+LrkTzyTTrNPIurcLTm5qRhMb0ZGyv0uYZQvxRHvGjg6ZmGrv9KNlBcwJoVRAZ/kvXRlBGrDYgCkqpx7yzgsAPDf9Aqc/PSjZl4Ldxk64sz5+c39rOdLN2QW96ypQlp+N6hlINmwcFXiRcMhsA47TCKmlRIhfqFup3aaN8ishUyIbemrHZi/RsdJubq8Ddf32PIkaGxS2UMQOLMBEhUbjoCob0Vd0C00o/mi4eGR9eAe070lVkLBF9Z6IfTT5J5QC9l0soPNlHwIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBHda/Ge2ZBMV1bNW2wHd/+PqLzRBmSnvFIO3BdUSgqM1U69+J7WqF/KkvtbcC7MK3OtSv7DNgxswP6nemTDoeG8RY+wkj5QPsXP5waxRB/Hb8TbhVnved4fR35Z3cPIIX+V1A3xgxn2fTl2nSaKIXq1JZHoQ9I3RNh+7zeNi2OhRo2C07f+w66WabowWgSZ6hTiCwfvR2f8KMpuck2Ro42VXMvsK+c0bjY33jXuImtXkim/QCzxQkWG6XNDLmtrv89xA1WhU3plSSXDArXSx7sgwKc2VipCcy1ZPoEMt78ChftAJxVJpb2l+p1vErZy6HAf4OHpfDlSx03cw0IZ5wv"],"x5t":"Namnuyi650xu_T_44vGIWBYbo9Y","x5t#S256":"OZ3egsK_3CObMwS30MdxOGWrXFZSDEjS7fSFO2O2i0Q"},{"kid":"dY_HoGKPr_c6e-G1i2770oV6tfsWorBtRa7cfi5_hs4","kty":"RSA","alg":"RSA-OAEP","use":"enc","n":"vf5jtEYbBHr9gkW7NJBdFDinwLXXC1TgGDKjWmlxthRESfQhk6Sm-_ij22RbcNYtnpidXW7vF0OdmSi0EGupkog7CuRuLOfsQ8h-9Fvh6BehMPYRw1ICro74rESD5gspHAadgI4gnWl9QcSH6EFlck2L796KrPbtBwIecqAJVBK6uP8MfVjcRhU_UA9dqRQi3AMqH_2s-xy1yWyqEPIimjY7wOYM7d9t5Gz4a6KsZYePF_d_FW7K0m4K7rD93wQKgbZVTscdSNvcL1NmeZ8TWV7KlNDHqLdh2h5Cdfrp9oA-KdEJZSjT-h9W1DdbUPfP-AU5OxjG9johORT--0txtQ","e":"AQAB","x5c":["MIICpTCCAY0CBgGMlzrTzzANBgkqhkiG9w0BAQsFADAWMRQwEgYDVQQDDAtwcm9qZXQtc2VjdTAeFw0yMzEyMjMxNTA5MjRaFw0zMzEyMjMxNTExMDRaMBYxFDASBgNVBAMMC3Byb2pldC1zZWN1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvf5jtEYbBHr9gkW7NJBdFDinwLXXC1TgGDKjWmlxthRESfQhk6Sm+/ij22RbcNYtnpidXW7vF0OdmSi0EGupkog7CuRuLOfsQ8h+9Fvh6BehMPYRw1ICro74rESD5gspHAadgI4gnWl9QcSH6EFlck2L796KrPbtBwIecqAJVBK6uP8MfVjcRhU/UA9dqRQi3AMqH/2s+xy1yWyqEPIimjY7wOYM7d9t5Gz4a6KsZYePF/d/FW7K0m4K7rD93wQKgbZVTscdSNvcL1NmeZ8TWV7KlNDHqLdh2h5Cdfrp9oA+KdEJZSjT+h9W1DdbUPfP+AU5OxjG9johORT++0txtQIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQCWszbfphWqhBhuwZQG9ohycPhXU2fKaYA8+psfgpCbZ0LoK4iPr2D/cph7Anll36j/Dg3Ma9METIHd+7cACEiL0d28kjawZCOBPtSU8fZDH5wKMHuFkv+KxZgP8o1ezQFfJJPbCpIQBSeOM28N3/6cQr5+L8VL4N19lihthXFSHWQGE5lmoIbdKeRVsZChkCIOAUGas9A+GPSWmb6bXAIMFURpCCad7xQJQd6P/ee1ehdWmfy8IriKLAecD724J/388WzUrD3cApGc62RzAzOoCpEQpWZwGoB2+pt3RIGaytfQuK9ssTsqMQhggIJI4z/4fpxNwunSchYVtJOZib9q"],"x5t":"gtgHKuEcS8CGM0jk2-oXSAL3sFU","x5t#S256":"Rt9xuJruGJPxSr4IFnx2Ht1Hj9zP53kT2Z19eCeEMVE"}]})";
-std::string RESSOURCE_SERVER = "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu";
 
 Server::Server(int inPort1, int outPort) : SocketCommunication(inPort1, outPort) {
     this->logger = spdlog::stdout_color_mt("Server");
@@ -76,9 +70,42 @@ void Server::handleMessage(const std::string &msg) {
 
 void Server::deleteFile(std::vector<std::string> args) {
     const std::string &filename = args[0];
+    if (OpenSSL::is_base64(filename)) {
+        logger->debug("Filename is base64");
+    } else {
+        logger->debug("Filename is not base64");
+        throw std::runtime_error("Filename is not base64");
+    }
+    const std::string &user_access_token = args[1];
+    auto decoded = jwt::decode(user_access_token);
+    // verify token
+    try {
+        verifier.verify(decoded);
+    } catch (std::exception &e) {
+        logger->error("Token verification failed: {}", e.what());
+        throw std::runtime_error("Token verification failed");
+    }
+    // check permission
+    // open file
+    std::ifstream file(std::string(FILES_FOLDER) + "/" + filename, std::ios::binary);
+    if (!file.is_open()) {
+        logger->error("File not found");
+        throw std::runtime_error("File not found");
+    }
+    file.seekg(0, std::ios::end);
+    unsigned long fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+    logger->info("File size: {}", fileSize);
+    std::string fileContentsAndResourceId((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+    std::string resourceId = fileContentsAndResourceId.substr(fileContentsAndResourceId.find(SPERATOR) + 1);
+    checkPermissionKeycloak(resourceId, user_access_token, "delete");
     logger->info("Deleting file: {}", filename);
+    deleteKeycloakResource(resourceId);
     std::filesystem::remove(std::string(FILES_FOLDER) + "/" + filename);
     logger->info("File deleted!");
+    this->send("OK");
+
 }
 
 void Server::listFiles() {
@@ -93,23 +120,39 @@ void Server::listFiles() {
 }
 
 void Server::downloadFile(std::vector<std::string> args) {
-    const std::string &filename = args[0];
     const std::string &user_access_token = args[1];
+    std::string base64Filename = args[0];
+    // check if filename is base64
+    if (OpenSSL::is_base64(base64Filename)) {
+        logger->debug("Filename is base64");
+    } else {
+        logger->debug("Filename is not base64");
+        throw std::runtime_error("Filename is not base64");
+    }
+    const std::string &filename = OpenSSL::base64_decode(base64Filename);
+
     logger->info("Downloading file: {} for token: {}", filename, user_access_token);
     auto decoded = jwt::decode(user_access_token);
     // verify token
     verifier.verify(decoded);
-    checkPermissionKeycloak(filename, user_access_token, "download");
     logger->info("Downloading file: {}", filename);
-    std::ifstream file(std::string(FILES_FOLDER) + "/" + filename, std::ios::binary);
+    std::ifstream file(std::string(FILES_FOLDER) + "/" + base64Filename, std::ios::binary);
     if (!file.is_open()) {
         logger->error("File not found");
+        throw std::runtime_error("File not found");
     }
     file.seekg(0, std::ios::end);
     unsigned long fileSize = file.tellg();
     file.seekg(0, std::ios::beg);
     logger->info("File size: {}", fileSize);
-    std::string fileContents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    std::string fileContentsAndResourceId((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+    file.close();
+
+    std::string fileContents = fileContentsAndResourceId.substr(0, fileContentsAndResourceId.find(SPERATOR));
+    logger->info("File contents: {}", fileContents);
+    std::string resourceId = fileContentsAndResourceId.substr(fileContentsAndResourceId.find(SPERATOR) + 1);
+    checkPermissionKeycloak(resourceId, user_access_token, "download");
     logger->info("Sending file contents...");
     send(fileContents);
     logger->info("File sent!");
@@ -121,22 +164,66 @@ void Server::uploadFile(std::vector<std::string> args) {
     std::string user_access_token = args[2];
     auto decoded = jwt::decode(user_access_token);
     // verify token
-    verifier.verify(decoded);
+    try {
+        verifier.verify(decoded);
+    } catch (std::exception &e) {
+        logger->error("Token verification failed: {}", e.what());
+        throw std::runtime_error("Token verification failed");
+    }
     std::string sub = decoded.get_subject();
-    std::string filenameStr = args[0];
-    std::filesystem::path path(filenameStr);
-    std::string filename = path.filename();
-    std::string file = args[1];
+    if (OpenSSL::is_base64(args[0])) {
+        logger->debug("Filename is base64");
+    } else {
+        logger->debug("Filename is not base64");
+        throw std::runtime_error("Filename is not base64");
+    }
+    if (OpenSSL::is_base64(args[1])) {
+        logger->debug("File is base64");
+    } else {
+        logger->debug("File is not base64");
+        throw std::runtime_error("File is not base64");
+    }
+    std::string filename = OpenSSL::base64_decode(args[0]);
+    std::string base64Filename = args[0];
+    std::string fileContentsBase64 = args[1];
     logger->info("Uploading file: {}", filename);
-    std::ofstream outfile(std::string(FILES_FOLDER) + "/" + filename);
-    outfile << file;
-    outfile.close();
+    std::ofstream outfile(std::string(FILES_FOLDER) + "/" + base64Filename);
+    outfile << fileContentsBase64;
     logger->info("File uploaded!");
-    logger->info("Creating keycloak resource...");
-    logger->info("Owner: {}:{}", sub, filename);
-    createKeycloakResource(filename, sub);
-    logger->info("Keycloak resource created!");
-    send("OK");
+    std::string resourceId;
+    try {
+        logger->info("Creating keycloak resource...");
+        logger->info("Owner: {}:{}", sub, filename);
+        nlohmann::json json = createKeycloakResource(filename, sub);
+         resourceId = json["_id"];
+        logger->info("Keycloak resource created!");
+        // append resource id to file
+        outfile << SPERATOR << resourceId;
+        outfile.close();
+        send("OK");
+    }
+    catch (std::exception &e) {
+        logger->error("Error: {}", e.what());
+        outfile.close();
+        // delete file
+        std::filesystem::remove(std::string(FILES_FOLDER) + "/" + base64Filename);
+        throw std::runtime_error("Error while creating keycloak resource");
+    }
+
+    try {
+        logger->info("Adding default permissions...");
+        addDefaultPermissionsKeycloak(resourceId, user_access_token);
+        logger->info("Default permissions added!");
+    }
+    catch (std::exception &e) {
+        logger->error("Error: {}", e.what());
+        // delete file
+        std::filesystem::remove(std::string(FILES_FOLDER) + "/" + base64Filename);
+        deleteKeycloakResource(filename);
+        throw std::runtime_error("Error while adding default permissions");
+    }
+
+
 }
 
 void Server::login(std::vector<std::string> args) {
@@ -252,7 +339,7 @@ void Server::verifyOrRefreshServerTokens() {
     refreshServerTokens();
 }
 
-void Server::createKeycloakResource(std::string filename, const std::string &owner) {
+nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, const std::string &owner) {
     logger->info("Creating keycloak resource for file: {}", filename);
     std::string createResourceUrl = "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu/clients/1aa674a2-3169-4041-bc82-dbe6cf1de68c/authz/resource-server/resource";
     // Let's declare a stream
@@ -294,8 +381,43 @@ void Server::createKeycloakResource(std::string filename, const std::string &own
     // parse response
     nlohmann::json json = nlohmann::json::parse(response);
     logger->debug("JSON: {}", json.dump());
+    return json;
 }
 
+
+void Server::deleteKeycloakResource(const std::string &filename) {
+    logger->info("Deleting keycloak resource for file: {}", filename);
+    std::string deleteResourceUrl =
+            "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu/clients/1aa674a2-3169-4041-bc82-dbe6cf1de68c/authz/resource-server/resource/" +
+            filename;
+    // Let's declare a stream
+    std::ostringstream stream;
+
+
+    // We are going to put the request's output in the previously declared stream
+    curl::curl_ios<std::ostringstream> ios(stream);
+    curl::curl_easy easy(ios);
+    easy.add<CURLOPT_URL>(deleteResourceUrl.c_str());
+    easy.add<CURLOPT_FOLLOWLOCATION>(1L);
+    std::string response;
+
+    // set Content-Type
+    struct curl_slist *headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    // set access token
+    headers = curl_slist_append(headers, ("Authorization: Bearer " + this->resourceServerAccessToken).c_str());
+    easy.add<CURLOPT_HTTPHEADER>(headers);
+    try {
+        easy.add<CURLOPT_CUSTOMREQUEST>("DELETE");
+        easy.perform();
+        std::cout << stream.str() << std::endl;
+        logger->info("Keycloak resource deleted! for file: {}", filename);
+    } catch (curl::curl_easy_exception &error) {
+        logger->error("Error while performing request: {}", error.what());
+        throw std::runtime_error("Error while performing request");
+    }
+
+}
 
 void
 Server::checkPermissionKeycloak(std::string filename, const std::string &requesterAccessToken, std::string permission) {
@@ -408,3 +530,49 @@ void Server::refreshToken(std::vector<std::string> args) {
     }
 }
 
+
+
+void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::string &ownerAccessToken) {
+    logger->info("Adding default permissions for file: {}", resourceId);
+    std::string permissionUrl = "https://keycloak.auth.apoorva64.com/realms/projet-secu/account/resources/" + resourceId + "/permissions";
+    // get preffered_username from access token
+    auto decoded = jwt::decode(ownerAccessToken);
+    std::string username = nlohmann::json::parse(decoded.get_payload())["preferred_username"];
+    logger->info("Owner: {}", username);
+
+    // Let's declare a stream
+    std::ostringstream stream;
+
+    // We are going to put the request's output in the previously declared stream
+    curl::curl_ios<std::ostringstream> ios(stream);
+    curl::curl_easy easy(ios);
+    easy.add<CURLOPT_URL>(permissionUrl.c_str());
+    easy.add<CURLOPT_FOLLOWLOCATION>(1L);
+    std::string response;
+
+    // set Content-Type
+    struct curl_slist *headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    // set access token
+    headers = curl_slist_append(headers, ("Authorization: Bearer " + ownerAccessToken).c_str());
+    easy.add<CURLOPT_HTTPHEADER>(headers);
+    nlohmann::json owner = nlohmann::json();
+    owner["username"] = username;
+    owner["scopes"] = nlohmann::json::array(
+            {"delete", "download"}
+    );
+
+    nlohmann::json j = nlohmann::json::array({owner});
+    // PUT request
+    std::string postFields = j.dump();
+    try {
+        easy.add<CURLOPT_CUSTOMREQUEST>("PUT");
+        easy.add<CURLOPT_POSTFIELDS>(postFields.c_str());
+        easy.perform();
+    } catch (curl::curl_easy_exception &error) {
+        logger->error("Error while performing request: {}", error.what());
+        throw std::runtime_error("Error while performing request");
+    }
+
+    logger->info("Default permissions added!");
+}

@@ -3,7 +3,6 @@
 //
 
 #include "Client.h"
-#include "AES.h"
 #include "OpenSSL.h"
 #include "CLI11.hpp"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -32,6 +31,11 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
     App *login = this->add_subcommand("login", "Login to server");
     login->callback([this]() {
         this->login();
+    });
+    App *deleteFile = this->add_subcommand("delete", "Delete a file");
+    deleteFile->add_option("-f,--file", this->filename, "Specify file to delete")->required();
+    deleteFile->callback([this]() {
+        this->deleteFile(this->filename);
     });
 
     App *list = this->add_subcommand("list", "List files on server");
@@ -80,7 +84,8 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
     std::string encodedFileContent = OpenSSL::base64_encode(
             std::string((char *) encryptedFileContent, paddedFileContentSize));
     logger->debug("Encrypted file contents: {}", encodedFileContent);
-    Command command(UPLOAD, {filename_, encodedFileContent, accessToken});
+    std::string base64FileName = OpenSSL::base64_encode(filename_);
+    Command command(UPLOAD, {base64FileName, encodedFileContent, accessToken});
     this->send(command.toString());
     std::string response = this->receiveString();
     logger->debug("Response: {}", response);
@@ -94,7 +99,8 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
 std::string
 Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &accessToken) {
     logger->info("Downloading file: {}", filename);
-    Command command(DOWNLOAD, {filename_, accessToken});
+    std::string base64FileName = OpenSSL::base64_encode(filename_);
+    Command command(DOWNLOAD, {base64FileName, accessToken});
     this->send(command.toString());
     std::string fileContents = this->receiveString();
     if (fileContents == "ERROR") {
@@ -113,6 +119,20 @@ Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param, co
     return dec_buf;
 }
 
+void Client::deleteFile(std::string filename_) {
+    this->RefreshIfNeededOrLogin();
+    logger->info("Deleting file: {}", filename_);
+    std::string base64FileName = OpenSSL::base64_encode(filename_);
+    Command command(DELETE, {base64FileName, this->accessToken});
+    this->send(command.toString());
+    std::string response = this->receiveString();
+    logger->debug("Response: {}", response);
+    if (response.substr(0, 2) != "OK") {
+        std::cout << "Delete failed!" << std::endl;
+        throw std::runtime_error("Delete failed");
+    }
+    std::cout << "Delete successful!" << std::endl;
+}
 
 void Client::upload() {
     this->RefreshIfNeededOrLogin();
@@ -146,6 +166,7 @@ void Client::download() {
     aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
     aesKeys.iv = "a7fe8fed9f4v8e5d";
     this->RefreshIfNeededOrLogin();
+
     std::string decrypted = this->download(this->filename, aesKeys, this->accessToken);
     logger->debug("Decrypted file contents: {}", decrypted);
     // base64 decode

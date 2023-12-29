@@ -37,6 +37,8 @@ public:
     void RefreshToken();
 
     void RefreshIfNeededOrLogin();
+
+    void deleteFile(std::string filename_);
 };
 
 
