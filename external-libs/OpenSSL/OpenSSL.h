@@ -226,6 +226,9 @@ public:
     [[nodiscard]] static EVP_PKEY * rsa_key_generation();
     [[nodiscard]] static std::string rsa_encrypt(EVP_PKEY *key, const std::string& message);
     [[nodiscard]] static std::string rsa_decrypt(EVP_PKEY *key, const std::string& message);
+
+    static bool is_base64(const std::string &message);
+
 private:
 
     /**
@@ -250,6 +253,7 @@ private:
             '3', '4', '5', '6', '7', '8', '9', '+', '/', '='};
 
     static std::string stripNonBase64FromString(const std::string &message);
+
 };
 
 

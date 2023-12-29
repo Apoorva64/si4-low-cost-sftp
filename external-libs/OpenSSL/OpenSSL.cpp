@@ -369,6 +369,9 @@ std::string OpenSSL::base64_encode(const std::string &message) {
     return result;
 }
 
+bool OpenSSL::is_base64(const std::string &message) {
+    return message.find_first_not_of(allowed_base64) == std::string::npos;
+}
 
 std::vector<char> OpenSSL::read_binary_file(const std::string &filename) {
     std::ifstream infile(filename, std::ios::binary);

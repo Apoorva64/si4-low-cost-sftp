@@ -39,7 +39,7 @@ public:
 
 
 
-    void createKeycloakResource(std::string filename, const std::string& owner);
+    nlohmann::basic_json<> createKeycloakResource(std::string filename, const std::string& owner);
 
 
 
@@ -57,6 +57,9 @@ public:
 
 
     void checkPermissionKeycloak(std::string filename, const std::string &owner, std::string permission);
+
+
+    void deleteKeycloakResource(const std::string &filename);
 };
 
 
