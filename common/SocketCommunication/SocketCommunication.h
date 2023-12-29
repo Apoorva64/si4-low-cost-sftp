@@ -14,6 +14,7 @@ public:
     char *writeBuffer;
     int inPort;
     int outPort;
+    bool isSslNegotiate;
     void start() const;
 
     void send(const std::string& msg) const;

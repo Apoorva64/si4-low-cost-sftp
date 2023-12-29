@@ -22,7 +22,7 @@ SocketCommunication::SocketCommunication(int inPort, int outPort) {
     this->readBuffer = new char[1024];
     this->writeBuffer = new char[1024];
     this->logger = spdlog::stdout_color_mt("SocketCommunication");
-
+    this->isSslNegotiate = true;
 }
 
 void SocketCommunication::start() const {

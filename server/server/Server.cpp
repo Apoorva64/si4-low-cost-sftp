@@ -225,7 +225,7 @@ nlohmann::json Server::login(std::string username, std::string password) {
         logger->info("Token verified!");
         return json;
     }
-    throw std::runtime_error("Token verification failed");
+    throw std::runtime_error("Token verification failed: ");
 }
 
 void Server::refreshServerTokens() {
