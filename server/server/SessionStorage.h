@@ -28,5 +28,6 @@ private:
     int minPort, maxPort, currentFreePort;
 };
 
+extern SessionStorage *sessionStorage;
 
 #endif //SECTRANS_SESSIONSTORAGE_H

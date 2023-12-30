@@ -21,11 +21,11 @@ SocketCommunication::SocketCommunication(int inPort, int outPort) {
     this->outPort = outPort;
     this->readBuffer = new char[1024];
     this->writeBuffer = new char[1024];
-    this->logger = spdlog::stdout_color_mt("SocketCommunication");
+    this->logger = spdlog::stdout_color_mt(fmt::format("SocketCommunication[{},{}]", inPort, outPort));
     this->isSslNegotiate = true;
 }
 
-void SocketCommunication::start() const {
+void SocketCommunication::start() {
     logger->info("Starting server on port {}", (int) this->inPort);
     startserver(this->inPort);
 }

@@ -3,6 +3,7 @@
 //
 
 #include "PeerServer.h"
+#include "Server.h"
 
 #include <utility>
 #include "Command/CommandEnum.h"
@@ -52,10 +53,17 @@ void PeerServer::initSession(std::vector<std::string> args) {
     SESSION_CLIENT session = this->storage->getSession(idSession);
 
     this->threadPool.queueJob(PeerServer::manageClient, idSession);
-
-    send(std::to_string(session.serverPort));
 }
 
 void PeerServer::manageClient(int idSession) {
+    SESSION_CLIENT sessionClient;
+    std::mutex lock;
+    lock.lock();
+    sessionClient = sessionStorage->getSession(idSession);
+    lock.unlock();
+    auto subServer = Server(sessionClient.serverPort, sessionClient.clientPort);
 
+    subServer.start();
+    subServer.send(std::to_string(sessionClient.serverPort));
+    subServer.run();
 }

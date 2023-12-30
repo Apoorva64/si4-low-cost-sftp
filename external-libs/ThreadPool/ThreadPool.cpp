@@ -2,16 +2,18 @@
 // Created by tombe on 29/12/2023.
 //
 
+
 #include <stdexcept>
 #include "ThreadPool.h"
+#include "spdlog/spdlog.h"
 
 void ThreadPool::start(uint32_t n) {
     const uint32_t num_threads = std::thread::hardware_concurrency(); // Max # of threads the system supports
     if(n > num_threads){
-        throw std::runtime_error("Out of thread !");
+        throw std::runtime_error(fmt::format("Out of thread ! (Max {})", num_threads));
     }
-    for (uint32_t ii = 0; ii < num_threads; ++ii) {
-        threads.emplace_back(std::thread(&ThreadPool::threadLoop,this));
+    for (uint32_t ii = 0; ii < n; ++ii) {
+        threads.emplace_back(&ThreadPool::threadLoop,this);
     }
 }
 

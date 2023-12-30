@@ -4,6 +4,7 @@ add_library(ThreadPool STATIC
         ThreadPool.h
 )
 
+target_link_libraries(ThreadPool spdlog)
 
 set_target_properties(ThreadPool PROPERTIES LINKER_LANGUAGE CXX)
 

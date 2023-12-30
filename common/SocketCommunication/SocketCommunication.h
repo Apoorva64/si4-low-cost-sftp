@@ -16,7 +16,7 @@ public:
     int outPort;
     bool isSslNegotiate;
 
-    virtual void start() const;
+    virtual void start();
 
     void send(const std::string& msg) const;
 
