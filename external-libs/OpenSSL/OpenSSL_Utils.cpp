@@ -4,6 +4,16 @@
 
 #include "OpenSSL_Utils.h"
 
+std::string getOpenSSLError()
+{
+    BIO *bio = BIO_new(BIO_s_mem());
+    ERR_print_errors(bio);
+    char *buf;
+    size_t len = BIO_get_mem_data(bio, &buf);
+    std::string ret(buf, len);
+    BIO_free(bio);
+    return ret;
+}
 
 unsigned char* OpenSSL_Utils::convert_string_to_uchar(const std::string &text) {
     unsigned char *text_convert = new unsigned char [text.size()];
@@ -36,42 +46,78 @@ std::vector<uint8_t> OpenSSL_Utils::uchar_to_bytes(unsigned char* message, unsig
 
 char* OpenSSL_Utils::get_rsa_private_key_str(EVP_PKEY* _pkey)
 {
-    char * _rsaPrivateKeyStr;
-    BIO *bioPrivate = BIO_new(BIO_s_mem());
-    PEM_write_bio_PrivateKey(bioPrivate, _pkey, nullptr, nullptr, 0, nullptr, nullptr);
+    char* _rsaPrivateKeyStr = nullptr;
+    BIO* bioPrivate = BIO_new(BIO_s_mem());
 
-    BIO_flush(bioPrivate);
-    BIO_get_mem_data(bioPrivate, &_rsaPrivateKeyStr);
+    if (!PEM_write_bio_PrivateKey(bioPrivate, _pkey, nullptr, nullptr, 0, nullptr, nullptr)) {
+        throw std::runtime_error(getOpenSSLError());
+    }
+
+    // Obtenez la taille de la chaîne
+    size_t length = BIO_pending(bioPrivate);
+
+    // Allouez suffisamment d'espace, y compris pour le caractère nul de fin de chaîne
+    _rsaPrivateKeyStr = new char[length + 1];
+
+    // Lire les données dans la chaîne allouée
+    BIO_read(bioPrivate, _rsaPrivateKeyStr, length);
+
+    // Ajouter le caractère nul de fin de chaîne
+    _rsaPrivateKeyStr[length] = '\0';
+
+    // Nettoyez la ressource BIO
+    BIO_free(bioPrivate);
 
     return _rsaPrivateKeyStr;
 }
 
 char* OpenSSL_Utils::get_rsa_public_key_str(EVP_PKEY* _pkey)
 {
-    char * _rsaPrivateKeyStr;
+    char * _rsaPrivateKeyStr = nullptr;
     BIO *bioPrivate = BIO_new(BIO_s_mem());
-    PEM_write_bio_PrivateKey(bioPrivate, _pkey, nullptr, nullptr, 0, nullptr, nullptr);
 
-    BIO_flush(bioPrivate);
-    BIO_get_mem_data(bioPrivate, &_rsaPrivateKeyStr);
+    if (!PEM_write_bio_PUBKEY(bioPrivate, _pkey)){
+        throw std::runtime_error(getOpenSSLError());
+    }
+
+    // Obtenez la taille de la chaîne
+    size_t length = BIO_pending(bioPrivate);
+
+    // Allouez suffisamment d'espace, y compris pour le caractère nul de fin de chaîne
+    _rsaPrivateKeyStr = new char[length + 1];
+
+    // Lire les données dans la chaîne allouée
+    BIO_read(bioPrivate, _rsaPrivateKeyStr, length);
+
+    // Ajouter le caractère nul de fin de chaîne
+    _rsaPrivateKeyStr[length] = '\0';
+
+    // Nettoyez la ressource BIO
+    BIO_free(bioPrivate);
 
     return _rsaPrivateKeyStr;
 }
 
 EVP_PKEY* OpenSSL_Utils::get_key_from_str(const std::string& pubKey, const std::string& privKey){
-    BIO *bioPrivate = BIO_new(BIO_s_mem());
-    BIO_write(bioPrivate, privKey.c_str(), static_cast<int>(privKey.length()));
+    EVP_PKEY *pkey = EVP_PKEY_new();
 
-    EVP_PKEY *pkey = PEM_read_bio_PrivateKey(bioPrivate, nullptr, nullptr, nullptr);
+    if(!pubKey.empty()) {
+        BIO* bioPublicKey = BIO_new_mem_buf(pubKey.c_str(), -1);
+        PEM_read_bio_PUBKEY(bioPublicKey, &pkey, nullptr, nullptr);
+        if (pkey == nullptr) {
+            EVP_PKEY_free(pkey);
+            throw std::runtime_error("Public Key set Error");
+        }
+    }
 
-    BIO_free(bioPrivate);
-
-    bioPrivate = BIO_new(BIO_s_mem());
-    BIO_write(bioPrivate, pubKey.c_str(), static_cast<int>(pubKey.length()));
-
-    PEM_read_bio_PUBKEY(bioPrivate, &pkey, nullptr, nullptr);
-
-    BIO_free(bioPrivate);
+    if(!privKey.empty()) {
+        BIO* bioPrivateKey = BIO_new_mem_buf(privKey.c_str(), -1);
+        PEM_read_bio_PrivateKey(bioPrivateKey, &pkey, nullptr, nullptr);
+        if (pkey == nullptr) {
+            EVP_PKEY_free(pkey);
+            throw std::runtime_error("Private Key set Error");
+        }
+    }
 
     return pkey;
 }
