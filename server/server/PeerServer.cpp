@@ -50,8 +50,6 @@ void PeerServer::initSession(std::vector<std::string> args) {
     std::string port = args.at(0);
 
     int idSession = this->storage->generateSession(std::stoi(port));
-    SESSION_CLIENT session = this->storage->getSession(idSession);
-
     this->threadPool.queueJob(PeerServer::manageClient, idSession);
 }
 

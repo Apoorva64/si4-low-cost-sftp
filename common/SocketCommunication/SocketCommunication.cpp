@@ -77,7 +77,7 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
 
     // get OK from other side
     getmsg(this->readBuffer);
-    logger->debug("Check Received: {}", this->readBuffer);
+    logger->info("Check Received: {}", this->readBuffer);
     if (std::string(this->readBuffer).substr(0, 2) != "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
         throw std::runtime_error("Check failed");
     }
@@ -86,7 +86,7 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
 }
 
 void SocketCommunication::send(const std::string &msg) const {
-    logger->info("Sending: {}", msg);
+    logger->info("Sending: {} to {}", msg, this->outPort);
     std::string msgToSend = msg + END_OF_MESSAGE;
     unsigned long msgLength = msgToSend.length();
     unsigned long chunks = msgLength / 1024;

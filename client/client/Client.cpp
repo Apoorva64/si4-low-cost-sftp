@@ -54,11 +54,23 @@ void Client::start() {
     SocketCommunication::start();
     Command cmd(INIT_SESSION, {std::to_string(this->inPort)});
     SocketCommunication::send(cmd.toString());
-    std::string newOutPort = SocketCommunication::receiveString();
+    char *msg2 = new char[1024];
+    int error = getmsg(msg2);
+    if (error == -1) {
+        logger->error("LibServer error");
+        throw std::runtime_error("LibServer error");
+    }
+    std::string newOutPort(msg2);
     std::string ok = "OK";
     char *msg = new char[1024];
     strcpy(msg, ok.c_str());
     sndmsg(msg, std::stoi(newOutPort));
+    error = getmsg(msg2);
+    if (error == -1) {
+        logger->error("LibServer error");
+        throw std::runtime_error("LibServer error");
+    }
+    logger->info("Init session OK");
     this->logger->info("New Port {}", newOutPort);
     this->outPort = std::stoi(newOutPort);
 }

@@ -17,14 +17,14 @@ int main(int argc, char **argv) {
     aesKeys.iv = "a7fe8fed9f4v8e5d";
 
     client.login();
-//
-//    client.upload(
-//            "test.txt",
-//            aesKeys,
-//            "cGV3cGV3cGV3",
-//            client.accessToken);
-    client.download(
+
+    client.upload(
             "test.txt",
-            aesKeys, client.accessToken);
+            aesKeys,
+            "cGV3cGV3cGV3",
+            client.accessToken);
+   // client.download(
+     //       "test.txt",
+       //     aesKeys, client.accessToken);
     return 0;
 }
