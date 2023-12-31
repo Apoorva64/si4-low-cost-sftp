@@ -24,6 +24,8 @@ public:
 
     Server(int inPort1, int outPort);
 
+    void sslHandshake(std::vector<std::string> args);
+
     void uploadFile(std::vector<std::string> args);
 
     void downloadFile(std::vector<std::string> args) ;

@@ -4,6 +4,8 @@
 #include "OpenSSL.h"
 #include "OpenSSL_Utils.h"
 
+
+
 void encrypt(const std::vector<uint8_t>& m_iv, const std::vector<uint8_t>& key, const std::vector<uint8_t>& message, std::vector<uint8_t>& output){
     output.resize(message.size() * AES_BLOCK_SIZE);
     int inlen = message.size();
@@ -55,6 +57,23 @@ void decrypt(const std::vector<uint8_t>& m_iv, const std::vector<uint8_t>& key, 
 
     output.resize(total_out);
     EVP_CIPHER_CTX_free(ctx);
+}
+
+OpenSSL_AES_Keys_st* OpenSSL::aes_key_generation() {
+    auto* keys = new OpenSSL_AES_Keys_st;
+    unsigned char key[16], iv[16];
+
+    if (!RAND_bytes(key, 16)) {
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
+    }
+    if (!RAND_bytes(iv, 16)) {
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
+    }
+
+    keys->key = OpenSSL_Utils::convert_uchar_to_string(key, 16);
+    keys->iv = OpenSSL_Utils::convert_uchar_to_string(iv, 16);
+
+    return keys;
 }
 
 std::string OpenSSL::aes_encrypt(const std::string& message, const std::string& key, const std::string& iv){

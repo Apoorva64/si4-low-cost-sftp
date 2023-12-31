@@ -9,7 +9,6 @@
 
 struct session_st{
     int clientPort, serverPort;
-    EVP_PKEY *sslKey;
 };
 
 typedef struct session_st SESSION_CLIENT;

@@ -2,9 +2,11 @@
 // Created by tombe on 23/12/2023.
 //
 
+#include <openssl/rand.h>
 #include "OpenSSL_Utils.h"
+#include "OpenSSL.h"
 
-std::string getOpenSSLError()
+std::string OpenSSL_Utils::getOpenSSLError()
 {
     BIO *bio = BIO_new(BIO_s_mem());
     ERR_print_errors(bio);
@@ -124,4 +126,26 @@ EVP_PKEY* OpenSSL_Utils::get_key_from_str(const std::string& pubKey, const std::
 
 std::string OpenSSL_Utils::convert_uchar_to_string(unsigned char *message, unsigned int inLen) {
     return OpenSSL_Utils::bytes_to_str(OpenSSL_Utils::uchar_to_bytes(message, inLen));
+}
+
+std::string OpenSSL_Utils::generateRandomString(int size) {
+    auto *buf = new unsigned char [size];
+
+    if (!RAND_bytes(buf, size)) {
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
+    }
+
+    std::string res = OpenSSL_Utils::convert_uchar_to_string(buf, size);
+
+    delete[] buf;
+    return res;
+}
+
+OpenSSL_AES_Keys_st *OpenSSL_Utils::get_aes_key_from_str(const std::string &key, const std::string &iv) {
+    auto *keys = new OpenSSL_AES_Keys_st;
+
+    keys->key = key;
+    keys->iv = iv;
+
+    return keys;
 }

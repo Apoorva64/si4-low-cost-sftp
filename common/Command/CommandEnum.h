@@ -17,7 +17,8 @@ enum CommandEnum {
     DELETE = 4,
     UNKNOWN = 5,
     REFRESH_TOKEN = 6,
-    INIT_SESSION = 7
+    INIT_SESSION = 7,
+    SSL_HANDSHAKE = 8,
 };
 
 #endif //SECTRANS_COMMANDENUM_H

@@ -36,12 +36,7 @@
 #include <filesystem>
 #include <functional>
 
-struct OpenSSL_AES_Keys_st{
-    std::string key;
-    std::string iv;
-};
-
-typedef struct OpenSSL_AES_Keys_st OpenSSL_AES_Keys;
+#include "OpenSSL_AES.h"
 
 struct OpenSSLFree
 {
@@ -221,6 +216,7 @@ public:
    */
     [[nodiscard]] static std::string base64_encode(const std::string& message);
 
+    [[nodiscard]] static OpenSSL_AES_Keys* aes_key_generation();
     [[nodiscard]] static std::string aes_encrypt(const std::string& message, const std::string& key, const std::string& iv);
     [[nodiscard]] static std::string aes_decrypt(const std::string& message, const std::string& key, const std::string& iv);
     [[nodiscard]] static EVP_PKEY * rsa_key_generation();

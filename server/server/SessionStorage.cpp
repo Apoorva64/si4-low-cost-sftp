@@ -16,7 +16,6 @@ int SessionStorage::generateSession(int clientPort) {
 
     new_session.clientPort = clientPort;
     new_session.serverPort = this->currentFreePort;
-    new_session.sslKey = nullptr;
 
     int index = this->currentFreePort - this->minPort;
 

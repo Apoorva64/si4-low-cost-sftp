@@ -6,6 +6,7 @@
 #define SECTRANS_SOCKETCOMMUNICATION_H
 
 #include "spdlog/logger.h"
+#include "OpenSSL.h"
 
 class SocketCommunication {
 public:
@@ -15,6 +16,9 @@ public:
     int inPort;
     int outPort;
     bool isSslNegotiate;
+    EVP_PKEY *keyClient, *keyServer;
+    OpenSSL_AES_Keys_st *key;
+
 
     virtual void start();
 

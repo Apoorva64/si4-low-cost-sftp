@@ -47,6 +47,7 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
     App *help = this->add_subcommand("help", "Display help");
     this->start();
     this->test();
+    this->negotiate();
     this->parse(argc, argv);
 }
 
@@ -73,6 +74,47 @@ void Client::start() {
     logger->info("Init session OK");
     this->logger->info("New Port {}", newOutPort);
     this->outPort = std::stoi(newOutPort);
+}
+
+void Client::negotiate(){
+    this->logger->info("Start SSL negotiate");
+    this->keyServer = OpenSSL::rsa_key_generation();
+
+    std::string serverPubKey = OpenSSL::base64_encode(OpenSSL_Utils::get_rsa_public_key_str(this->keyServer));
+
+    Command cmd(SSL_HANDSHAKE, {serverPubKey});
+
+    this->logger->info("Send Key");
+    this->send(cmd.toString());
+
+    std::string serverClientKey = OpenSSL::base64_decode(this->receiveString());
+
+
+    this->keyClient = OpenSSL_Utils::get_key_from_str(serverClientKey, "");
+
+    this->key = OpenSSL::aes_key_generation();
+
+    std::string aesKey = OpenSSL::base64_encode(OpenSSL::rsa_encrypt(this->keyClient, this->key->key));
+    std::string aesIv = OpenSSL::base64_encode(OpenSSL::rsa_encrypt(this->keyClient, this->key->iv));
+
+    this->send(aesKey);
+    this->send(aesIv);
+
+    std::string challenge = OpenSSL_Utils::generateRandomString(256);
+    std::string encChallenge = OpenSSL::base64_encode(OpenSSL::aes_encrypt(challenge, this->key->key, this->key->iv));
+
+    this->send(encChallenge);
+
+    std::string rawChallenge = OpenSSL::base64_decode(this->receiveString());
+    std::string tryChallenge = OpenSSL::aes_decrypt(rawChallenge, this->key->key, this->key->iv);
+
+    std::reverse(challenge.begin(), challenge.end());
+    if(challenge != tryChallenge){
+        throw std::runtime_error("Error Challenge Failed !");
+    }
+
+    this->isSslNegotiate = true;
+    this->logger->info("SSL Handshake complete !");
 }
 
 

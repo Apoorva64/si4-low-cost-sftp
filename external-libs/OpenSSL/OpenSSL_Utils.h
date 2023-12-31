@@ -17,6 +17,8 @@
 #include <filesystem>
 #include <functional>
 
+#include "OpenSSL_AES.h"
+
 #pragma once
 
 
@@ -30,5 +32,8 @@ public:
     [[nodiscard]] static char* get_rsa_private_key_str(EVP_PKEY* _pkey);
     [[nodiscard]] static char* get_rsa_public_key_str(EVP_PKEY* _pkey);
     [[nodiscard]] static EVP_PKEY *get_key_from_str(const std::string& pubKey, const std::string& privKey);
+    [[nodiscard]] static OpenSSL_AES_Keys_st* get_aes_key_from_str(const std::string& key, const std::string& iv);
+    [[nodiscard]] static std::string getOpenSSLError();
+    [[nodiscard]] static std::string generateRandomString(int size);
 };
 

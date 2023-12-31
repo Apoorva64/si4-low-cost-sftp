@@ -8,6 +8,7 @@ add_library(OpenSSL STATIC
         OpenSSL_Utils.cpp
         OpenSSL_Utils.h
         OpenSSL_RSA.cpp
+        OpenSSL_AES.h
 )
 
 target_link_libraries(OpenSSL

@@ -22,6 +22,7 @@ public:
     std::string accessToken;
     std::string refreshToken;
     void start() override;
+    void negotiate();
     void upload();
 
 

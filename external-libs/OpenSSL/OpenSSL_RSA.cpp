@@ -53,8 +53,9 @@ std::string OpenSSL::rsa_encrypt(EVP_PKEY *key, const std::string &message) {
 
     out = new unsigned char [outLen];
 
-    if (EVP_PKEY_encrypt(ctx, out, &outLen, in, inLen) <= 0)
-        throw std::runtime_error("Failed to encrypt !");
+    if (EVP_PKEY_encrypt(ctx, out, &outLen, in, inLen) <= 0) {
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
+    }
 
     std::string result = OpenSSL_Utils::convert_uchar_to_string(out, outLen);
 
