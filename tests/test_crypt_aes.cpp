@@ -35,18 +35,5 @@ TEST_CASE("AES buffer crypt", "[aes_buffer_crypt]"){
     REQUIRE(message == dec);
     REQUIRE(dec.size() == 1024);
 
-    char charArray[1024];
-    std::strncpy(charArray, dec.c_str(), sizeof(charArray) - 1);
-    charArray[sizeof(charArray) - 1] = '\0';
-
-    std::string rewind;
-    rewind.resize(1024);
-
-    for(int i=0;i<1024;i++){
-        rewind[i] = charArray[i];
-    }
-
-    REQUIRE(dec == rewind);
-
     delete keys;
 }

@@ -22,7 +22,7 @@ SocketCommunication::SocketCommunication(int inPort, int outPort) {
     this->readBuffer = new char[1024];
     this->writeBuffer = new char[1024];
     this->logger = spdlog::stdout_color_mt(fmt::format("SocketCommunication[{},{}]", inPort, outPort));
-    this->isSslNegotiate = true;
+    this->isSslNegotiate = false;
 }
 
 void SocketCommunication::start() {
@@ -87,7 +87,12 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
 
 void SocketCommunication::send(const std::string &msg) const {
     logger->info("Sending: {} to {}", msg, this->outPort);
-    std::string msgToSend = msg + END_OF_MESSAGE;
+    std::string msgToSend;
+    if(this->isSslNegotiate){
+        msgToSend = OpenSSL::base64_encode(OpenSSL::aes_encrypt(msg, this->key->key, this->key->iv)) + END_OF_MESSAGE;
+    }else{
+        msgToSend = msg + END_OF_MESSAGE;
+    }
     unsigned long msgLength = msgToSend.length();
     unsigned long chunks = msgLength / 1024;
     unsigned long remainder = msgLength % 1024;
@@ -112,6 +117,9 @@ std::string SocketCommunication::receiveString() const {
         msg += this->readBuffer;
     }
     std::string fullMsg = msg.substr(0, msg.find(END_OF_MESSAGE));
+    if(this->isSslNegotiate){
+        fullMsg = OpenSSL::aes_decrypt(OpenSSL::base64_decode(fullMsg), this->key->key, this->key->iv);
+    }
     logger->info("Received: {}", fullMsg);
     return fullMsg;
 }
