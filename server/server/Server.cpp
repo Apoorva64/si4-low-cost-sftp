@@ -312,7 +312,7 @@ nlohmann::json Server::login(std::string username, std::string password) {
                             jwt::algorithm::rs256(jwt::helper::convert_base64_der_to_pem(x5c), "", "", ""));
     if (!issuer.empty()) {
         logger->debug("Verifying token...");
-        //verifier.verify(decoded); #TODO UNCOMMENT THIS LINE OF CODE
+        verifier.verify(decoded);
         logger->info("Token verified!");
         return json;
     }

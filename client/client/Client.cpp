@@ -22,7 +22,7 @@ std::string RAW_JWKS = R"({"keys":[{"kid":"9cgFE7e849rMB0fxe2HEud-3noZz-dBPEpdcZ
 Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunication(inPort, outPort) {
     this->logger = spdlog::stdout_color_mt("Client");
     App *upload = this->add_subcommand("upload", "Upload a file");
-    upload->add_option("-f,--file", this->filename, "Specify file to upload")->required();
+    upload->add_option("-f,--file", this->filename, "Specify file to upload")->required()->check(CLI::ExistingFile);
     upload->callback([this]() {
         this->upload();
     });
