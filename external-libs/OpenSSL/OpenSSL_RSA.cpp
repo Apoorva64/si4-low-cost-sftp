@@ -9,22 +9,22 @@ EVP_PKEY * OpenSSL::rsa_key_generation() {
     EVP_PKEY *pkey = nullptr;
 
     if(!kctx)
-        throw std::runtime_error("Failed to get RSA context !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     int code = EVP_PKEY_keygen_init(kctx);
 
     if(code <= 0)
-        throw std::runtime_error("Failed to init key generation !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     code = EVP_PKEY_CTX_set_rsa_keygen_bits(kctx, 4096);
 
     if(code <= 0)
-        throw std::runtime_error("Failed to set RSA key length !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     code = EVP_PKEY_keygen(kctx, &pkey);
 
     if(code <= 0)
-        throw std::runtime_error("Failed to generate key !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     EVP_PKEY_CTX_free(kctx);
 
@@ -40,16 +40,16 @@ std::string OpenSSL::rsa_encrypt(EVP_PKEY *key, const std::string &message) {
     inLen = message.size();
 
     if(!ctx)
-        throw std::runtime_error("Failed to create encryption context !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     if (EVP_PKEY_encrypt_init(ctx) <= 0)
-        throw std::runtime_error("Failed to init encryption context !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0)
-        throw std::runtime_error("Failed to add RSA padding !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     if (EVP_PKEY_encrypt(ctx, NULL, &outLen, in, inLen) <= 0)
-        throw std::runtime_error("Failed  get size of encrypt !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     out = new unsigned char [outLen];
 
@@ -73,21 +73,21 @@ std::string OpenSSL::rsa_decrypt(EVP_PKEY *key, const std::string &message) {
     inLen = message.size();
 
     if(!ctx)
-        throw std::runtime_error("Failed to create encryption context !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     if (EVP_PKEY_decrypt_init(ctx) <= 0)
-        throw std::runtime_error("Failed to init encryption context !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0)
-        throw std::runtime_error("Failed to add RSA padding !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     if (EVP_PKEY_decrypt(ctx, NULL, &outLen, in, inLen) <= 0)
-        throw std::runtime_error("Failed  get size of encrypt !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     out = new unsigned char [outLen];
 
     if (EVP_PKEY_decrypt(ctx, out, &outLen, in, inLen) <= 0)
-        throw std::runtime_error("Failed to encrypt !");
+        throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
 
     std::string result = OpenSSL_Utils::convert_uchar_to_string(out, outLen);
 

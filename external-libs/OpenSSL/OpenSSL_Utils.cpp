@@ -101,6 +101,9 @@ char* OpenSSL_Utils::get_rsa_public_key_str(EVP_PKEY* _pkey)
 }
 
 EVP_PKEY* OpenSSL_Utils::get_key_from_str(const std::string& pubKey, const std::string& privKey){
+    if(pubKey.empty() && privKey.empty()){
+        throw std::runtime_error("Key empty !");
+    }
     EVP_PKEY *pkey = EVP_PKEY_new();
 
     if(!pubKey.empty()) {
@@ -142,10 +145,18 @@ std::string OpenSSL_Utils::generateRandomString(int size) {
 }
 
 OpenSSL_AES_Keys_st *OpenSSL_Utils::get_aes_key_from_str(const std::string &key, const std::string &iv) {
+    if(key.empty() && iv.empty()){
+        throw std::runtime_error("Key Error");
+    }
+
     auto *keys = new OpenSSL_AES_Keys_st;
 
     keys->key = key;
     keys->iv = iv;
 
     return keys;
+}
+
+std::string OpenSSL_Utils::convert_char_to_string(char *message) {
+    return std::string(message);
 }

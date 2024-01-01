@@ -7,6 +7,7 @@
 
 #include "spdlog/logger.h"
 #include "OpenSSL.h"
+#include "OpenSSL_Utils.h"
 
 class SocketCommunication {
 public:

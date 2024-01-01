@@ -9,9 +9,10 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
-add_executable(tests test_crypt.cpp
+add_executable(tests test_crypt_rsa.cpp
         test_thread_pool.cpp
-        test_utils.cpp)
+        test_utils.cpp
+        test_crypt_aes.cpp)
 target_link_libraries(tests Catch2::Catch2WithMain OpenSSL ThreadPool)
 include(CTest)
 include(Catch)

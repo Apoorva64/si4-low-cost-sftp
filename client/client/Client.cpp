@@ -94,12 +94,14 @@ void Client::negotiate(){
 
     this->key = OpenSSL::aes_key_generation();
 
+    this->logger->info("Send Crypt AES");
     std::string aesKey = OpenSSL::base64_encode(OpenSSL::rsa_encrypt(this->keyClient, this->key->key));
     std::string aesIv = OpenSSL::base64_encode(OpenSSL::rsa_encrypt(this->keyClient, this->key->iv));
 
     this->send(aesKey);
     this->send(aesIv);
 
+    this->logger->info("Start challenge");
     std::string challenge = OpenSSL_Utils::generateRandomString(256);
     std::string encChallenge = OpenSSL::base64_encode(OpenSSL::aes_encrypt(challenge, this->key->key, this->key->iv));
 
@@ -112,6 +114,8 @@ void Client::negotiate(){
     if(challenge != tryChallenge){
         throw std::runtime_error("Error Challenge Failed !");
     }
+
+    this->logger->info("Challenge OK!");
 
     this->isSslNegotiate = true;
     this->logger->info("SSL Handshake complete !");
@@ -202,7 +206,7 @@ void Client::upload() {
     OpenSSL_AES_Keys aesKeys;
 
     aesKeys.key = "p6Ix*(L/6NP)28HZ}_KQ25h@dWD+xB{^";
-    aesKeys.iv = "a7fe8fed9f4v8e5d";
+    aesKeys.iv =  "a7fe8fed9f4v8e5d";
     // read file contents
     std::ifstream file(this->filename, std::ios::binary | std::ios::ate);
     std::streamsize size = file.tellg();

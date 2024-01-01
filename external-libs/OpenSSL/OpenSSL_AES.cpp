@@ -61,16 +61,16 @@ void decrypt(const std::vector<uint8_t>& m_iv, const std::vector<uint8_t>& key, 
 
 OpenSSL_AES_Keys_st* OpenSSL::aes_key_generation() {
     auto* keys = new OpenSSL_AES_Keys_st;
-    unsigned char key[16], iv[16];
+    unsigned char key[32], iv[16];
 
-    if (!RAND_bytes(key, 16)) {
+    if (!RAND_bytes(key, 32)) {
         throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
     }
     if (!RAND_bytes(iv, 16)) {
         throw std::runtime_error(OpenSSL_Utils::getOpenSSLError());
     }
 
-    keys->key = OpenSSL_Utils::convert_uchar_to_string(key, 16);
+    keys->key = OpenSSL_Utils::convert_uchar_to_string(key, 32);
     keys->iv = OpenSSL_Utils::convert_uchar_to_string(iv, 16);
 
     return keys;

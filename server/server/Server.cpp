@@ -597,7 +597,7 @@ void Server::sslHandshake(std::vector<std::string> args) {
 
     logger->info("KeyGeneration Complete");
 
-    std::string pubServerKey = OpenSSL_Utils::get_rsa_public_key_str(this->keyServer);
+    std::string pubServerKey = OpenSSL::base64_encode(OpenSSL_Utils::get_rsa_public_key_str(this->keyServer));
 
     logger->info("Send key");
     this->send(pubServerKey);
@@ -605,8 +605,8 @@ void Server::sslHandshake(std::vector<std::string> args) {
     std::string encKey = OpenSSL::base64_decode(this->receiveString());
     std::string encIv = OpenSSL::base64_decode(this->receiveString());
 
-    std::string aesKey = OpenSSL::rsa_decrypt(this->keyClient, encKey);
-    std::string aesIv = OpenSSL::rsa_decrypt(this->keyClient, encIv);
+    std::string aesKey = OpenSSL::rsa_decrypt(this->keyServer, encKey);
+    std::string aesIv = OpenSSL::rsa_decrypt(this->keyServer, encIv);
 
     this->key = OpenSSL_Utils::get_aes_key_from_str(aesKey, aesIv);
 

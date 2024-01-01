@@ -26,6 +26,7 @@ class OpenSSL_Utils {
 public:
     [[nodiscard]] static unsigned char *convert_string_to_uchar(const std::string &text);
     [[nodiscard]] static std::string convert_uchar_to_string(unsigned char* message, unsigned int inLen);
+    [[nodiscard]] static std::string convert_char_to_string(char * message);
     [[nodiscard]] static std::vector<uint8_t> str_to_bytes(const std::string& message);
     [[nodiscard]] static std::string bytes_to_str(const std::vector<uint8_t>& bytes);
     [[nodiscard]] static std::vector<uint8_t> uchar_to_bytes(unsigned char* message, unsigned int inLen);
