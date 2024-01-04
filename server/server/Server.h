@@ -64,6 +64,8 @@ public:
     void deleteKeycloakResource(const std::string &filename);
 
     void addDefaultPermissionsKeycloak(std::string resourceId, const std::string &ownerAccessToken);
+
+    void ResetKeycloak();
 };
 
 

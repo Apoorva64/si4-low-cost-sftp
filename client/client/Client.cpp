@@ -44,6 +44,9 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
     });
 
     App *list = this->add_subcommand("list", "List files on server");
+    list->callback([this]() {
+        this->listFiles();
+    });
     App *help = this->add_subcommand("help", "Display help");
     this->start();
     this->test();
@@ -306,3 +309,18 @@ void Client::RefreshIfNeededOrLogin() {
 }
 
 
+void Client::listFiles(){
+    RefreshIfNeededOrLogin();
+    Command command(LIST, {this->accessToken});
+    this->send(command.toString());
+    std::string response = this->receiveString();
+    if (response == "ERROR") {
+        logger->error("List failed");
+        throw std::runtime_error("List failed");
+    }
+    logger->debug("Response: {}", response);
+    auto files = Command::split(response, SPERATOR);
+    for(auto &file : files){
+        std::cout << OpenSSL::base64_decode(file) << std::endl;
+    }
+}

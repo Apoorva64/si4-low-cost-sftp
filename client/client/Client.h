@@ -40,6 +40,8 @@ public:
     void RefreshIfNeededOrLogin();
 
     void deleteFile(std::string filename_);
+
+    void listFiles();
 };
 
 

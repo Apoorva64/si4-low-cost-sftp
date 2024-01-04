@@ -116,7 +116,9 @@ void Server::listFiles() {
     logger->info("Listing files...");
     std::string files;
     for (const auto &entry: std::filesystem::directory_iterator(FILES_FOLDER)) {
-        files += entry.path().filename().string() + SPERATOR;
+        if (OpenSSL::is_base64(entry.path().filename().string())) {
+            files += entry.path().filename().string() + SPERATOR;
+        }
     }
     logger->info("Sending files...");
     send(files);
@@ -199,7 +201,7 @@ void Server::uploadFile(std::vector<std::string> args) {
         logger->info("Creating keycloak resource...");
         logger->info("Owner: {}:{}", sub, filename);
         nlohmann::json json = createKeycloakResource(filename, sub);
-         resourceId = json["_id"];
+        resourceId = json["_id"];
         logger->info("Keycloak resource created!");
         // append resource id to file
         outfile << SPERATOR << resourceId;
@@ -309,7 +311,7 @@ nlohmann::json Server::login(std::string username, std::string password) {
     this->verifier =
             this->verifier
                     .allow_algorithm(
-                            jwt::algorithm::rs256(jwt::helper::convert_base64_der_to_pem(x5c), "", "", ""));
+                            jwt::algorithm::rs256(jwt::helper::convert_base64_der_to_pem(x5c), "", "", "")).leeway(100);
     if (!issuer.empty()) {
         logger->debug("Verifying token...");
         verifier.verify(decoded);
@@ -414,7 +416,6 @@ void Server::deleteKeycloakResource(const std::string &filename) {
     try {
         easy.add<CURLOPT_CUSTOMREQUEST>("DELETE");
         easy.perform();
-        std::cout << stream.str() << std::endl;
         logger->info("Keycloak resource deleted! for file: {}", filename);
     } catch (curl::curl_easy_exception &error) {
         logger->error("Error while performing request: {}", error.what());
@@ -535,10 +536,10 @@ void Server::refreshToken(std::vector<std::string> args) {
 }
 
 
-
 void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::string &ownerAccessToken) {
     logger->info("Adding default permissions for file: {}", resourceId);
-    std::string permissionUrl = "https://keycloak.auth.apoorva64.com/realms/projet-secu/account/resources/" + resourceId + "/permissions";
+    std::string permissionUrl =
+            "https://keycloak.auth.apoorva64.com/realms/projet-secu/account/resources/" + resourceId + "/permissions";
     // get preffered_username from access token
     auto decoded = jwt::decode(ownerAccessToken);
     std::string username = nlohmann::json::parse(decoded.get_payload())["preferred_username"];
@@ -582,7 +583,7 @@ void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::st
 }
 
 void Server::sslHandshake(std::vector<std::string> args) {
-    if(args.size() != 1){
+    if (args.size() != 1) {
         throw std::runtime_error("Error args SSL Handshake");
     }
     logger->info("Init SSL Handshake");
@@ -591,7 +592,7 @@ void Server::sslHandshake(std::vector<std::string> args) {
     this->keyClient = OpenSSL_Utils::get_key_from_str(pubKey, "");
     this->keyServer = OpenSSL::rsa_key_generation();
 
-    if(this->keyClient == nullptr){
+    if (this->keyClient == nullptr) {
         throw std::runtime_error("key client null");
     }
 
@@ -622,4 +623,48 @@ void Server::sslHandshake(std::vector<std::string> args) {
 
     this->isSslNegotiate = true;
     logger->info("SSL Handshake complete !");
+}
+
+
+void Server::ResetKeycloak() {
+    logger->info("Reset Keycloak");
+
+    // Get all resources
+    std::string deleteResourceUrl =
+            "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu/clients/1aa674a2-3169-4041-bc82-dbe6cf1de68c/authz/resource-server/resource?first=0&max=11000000&deep=false";
+    // Let's declare a stream
+    std::ostringstream stream;
+
+    // We are going to put the request's output in the previously declared stream
+    curl::curl_ios<std::ostringstream> ios(stream);
+    curl::curl_easy easy(ios);
+    easy.add<CURLOPT_URL>(deleteResourceUrl.c_str());
+    easy.add<CURLOPT_FOLLOWLOCATION>(1L);
+    std::string response;
+
+    // set Content-Type
+    struct curl_slist *headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    // set access token
+    headers = curl_slist_append(headers, ("Authorization: Bearer " + this->resourceServerAccessToken).c_str());
+    easy.add<CURLOPT_HTTPHEADER>(headers);
+    try {
+        easy.add<CURLOPT_CUSTOMREQUEST>("GET");
+        easy.perform();
+        logger->info("List of resources");
+    } catch (curl::curl_easy_exception &error) {
+        logger->error("Error while performing request: {}", error.what());
+        throw std::runtime_error("Error while performing request");
+    }
+
+    response = stream.str();
+    logger->info("Response: {}", response);
+    // parse response
+    nlohmann::json json = nlohmann::json::parse(response);
+    logger->debug("JSON: {}", json.dump());
+    for (auto &element: json) {
+        std::string resourceId = element["_id"];
+        logger->info("Deleting resource: {}", resourceId);
+        deleteKeycloakResource(resourceId);
+    }
 }
