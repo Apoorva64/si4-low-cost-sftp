@@ -12,10 +12,20 @@ extern "C" {
 #include "libclient.h"
 #include "libserver.h"
 }
+
 #include<unistd.h>
 
 #define END_OF_MESSAGE '`'
 
+/**
+ * @brief Constructs a SocketCommunication object.
+ *
+ * Initializes the object with input and output port numbers, allocates buffers for reading and writing,
+ * sets up a logger, and initializes the SSL negotiation flag to false.
+ *
+ * @param inPort The port number for incoming messages.
+ * @param outPort The port number for outgoing messages.
+ */
 SocketCommunication::SocketCommunication(int inPort, int outPort) {
     this->inPort = inPort;
     this->outPort = outPort;
@@ -25,11 +35,24 @@ SocketCommunication::SocketCommunication(int inPort, int outPort) {
     this->isSslNegotiate = false;
 }
 
+/**
+ * @brief Starts the server on the input port.
+ *
+ * Calls the external function `startserver` to begin listening for incoming connections on the input port.
+ */
 void SocketCommunication::start() {
     logger->info("Starting server on port {}", (int) this->inPort);
     startserver(this->inPort);
 }
 
+/**
+ * @brief Tests the connection by sending a ping message.
+ *
+ * Sends a "Ping" message to the server and waits for a "Pong" response to confirm the connection is working.
+ * Throws a runtime error if the connection test fails.
+ *
+ * @throws std::runtime_error If the connection test fails.
+ */
 void SocketCommunication::test() const {
     logger->info("Testing Connection to server sending Ping on port {}", (int) this->outPort);
     this->send("Ping");
@@ -41,6 +64,18 @@ void SocketCommunication::test() const {
     std::cout << "Connection established!" << std::endl;
 }
 
+
+/**
+ * @brief Wrapper for sending a message.
+ *
+ * Sends a message using the `sndmsg` external function and performs a handshake to ensure the message was received.
+ * Throws a runtime error if sending fails or the handshake is not acknowledged.
+ *
+ * @param msg The message to send.
+ * @param port The port number to send the message to.
+ * @return int The result of the `sndmsg` call.
+ * @throws std::runtime_error If sending fails or the handshake is not acknowledged.
+ */
 int SocketCommunication::sndmsgWrapper(char msg[1024], int port) const {
     int error = sndmsg(msg, port);
     if (error == -1) {
@@ -51,7 +86,8 @@ int SocketCommunication::sndmsgWrapper(char msg[1024], int port) const {
     // get OK from other side
     getmsg(this->readBuffer);
     logger->debug("Check Received: {}", this->readBuffer);
-    if (std::string(this->readBuffer).substr(0, 2) != "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
+    if (std::string(this->readBuffer).substr(0, 2) !=
+        "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
         logger->error("Check failed");
         throw std::runtime_error("Check failed");
     }
@@ -63,6 +99,17 @@ int SocketCommunication::sndmsgWrapper(char msg[1024], int port) const {
     return error;
 }
 
+/**
+ * @brief Wrapper for receiving a message.
+ *
+ * Receives a message using the `getmsg` external function and performs a handshake to acknowledge receipt.
+ * Throws a runtime error if receiving fails or the handshake is not acknowledged.
+ *
+ * @param msg The buffer to store the received message.
+ * @param port The port number to receive the message from.
+ * @return int The result of the `getmsg` call.
+ * @throws std::runtime_error If receiving fails or the handshake is not acknowledged.
+ */
 int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
     char *msg2 = new char[1024];
     int error = getmsg(msg2);
@@ -78,19 +125,28 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
     // get OK from other side
     getmsg(this->readBuffer);
     logger->info("Check Received: {}", this->readBuffer);
-    if (std::string(this->readBuffer).substr(0, 2) != "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
+    if (std::string(this->readBuffer).substr(0, 2) !=
+        "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
         throw std::runtime_error("Check failed");
     }
     strcpy(msg, msg2);
     return error;
 }
 
+/**
+ * @brief Sends a message to the server.
+ *
+ * Encrypts and encodes the message if SSL negotiation is enabled, appends an end-of-message character,
+ * and sends the message in chunks of 1024 bytes using `sndmsgWrapper`.
+ *
+ * @param msg The message to send.
+ */
 void SocketCommunication::send(const std::string &msg) const {
     logger->info("Sending: {} to {}", msg, this->outPort);
     std::string msgToSend;
-    if(this->isSslNegotiate){
+    if (this->isSslNegotiate) {
         msgToSend = OpenSSL::base64_encode(OpenSSL::aes_encrypt(msg, this->key->key, this->key->iv)) + END_OF_MESSAGE;
-    }else{
+    } else {
         msgToSend = msg + END_OF_MESSAGE;
     }
     unsigned long msgLength = msgToSend.length();
@@ -107,7 +163,14 @@ void SocketCommunication::send(const std::string &msg) const {
 
 }
 
-
+/**
+ * @brief Receives a string message from the server.
+ *
+ * Calls `getmsgWrapper` to receive chunks of the message until the end-of-message character is found.
+ * Decrypts and decodes the message if SSL negotiation is enabled.
+ *
+ * @return std::string The received message.
+ */
 std::string SocketCommunication::receiveString() const {
     this->getmsgWrapper(this->readBuffer, this->outPort);
     std::string msg = this->readBuffer;
@@ -117,20 +180,32 @@ std::string SocketCommunication::receiveString() const {
         msg += this->readBuffer;
     }
     std::string fullMsg = msg.substr(0, msg.find(END_OF_MESSAGE));
-    if(this->isSslNegotiate){
+    if (this->isSslNegotiate) {
         fullMsg = OpenSSL::aes_decrypt(OpenSSL::base64_decode(fullMsg), this->key->key, this->key->iv);
     }
     logger->info("Received: {}", fullMsg);
     return fullMsg;
 }
 
-void SocketCommunication::handleMessage(const std::string &msg)  {
+/**
+ * @brief Handles incoming messages.
+ *
+ * Responds to a "Ping" message with a "Pong" message.
+ *
+ * @param msg The incoming message to handle.
+ */
+void SocketCommunication::handleMessage(const std::string &msg) {
     if (msg == "Ping") {
         this->send("Pong");
     }
 }
 
-[[noreturn]] void SocketCommunication::run()  {
+/**
+ * @brief Runs the main loop to handle incoming messages.
+ *
+ * Continuously receives and handles messages in an infinite loop.
+ */
+[[noreturn]] void SocketCommunication::run() {
     while (true) {
         std::string msg = this->receiveString();
         this->handleMessage(msg);

@@ -9,6 +9,13 @@
 #include <string>
 #include <unordered_map>
 
+/**
+ * @enum CommandEnum
+ * @brief This enumeration represents the different types of commands in the client-server communication model.
+ *
+ * The CommandEnum enumeration provides the following command types:
+ * LOGIN, UPLOAD, DOWNLOAD, LIST, DELETE, UNKNOWN, REFRESH_TOKEN, INIT_SESSION, SSL_HANDSHAKE.
+ */
 enum CommandEnum {
     LOGIN = 0,
     UPLOAD = 1,

@@ -102,7 +102,7 @@ void Server::deleteFile(std::vector<std::string> args) {
     logger->info("File size: {}", fileSize);
     std::string fileContentsAndResourceId((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
-    std::string resourceId = fileContentsAndResourceId.substr(fileContentsAndResourceId.find(SPERATOR) + 1);
+    std::string resourceId = fileContentsAndResourceId.substr(fileContentsAndResourceId.find(SEPARATOR) + 1);
     checkPermissionKeycloak(resourceId, user_access_token, "delete");
     logger->info("Deleting file: {}", filename);
     deleteKeycloakResource(resourceId);
@@ -117,7 +117,7 @@ void Server::listFiles() {
     std::string files;
     for (const auto &entry: std::filesystem::directory_iterator(FILES_FOLDER)) {
         if (OpenSSL::is_base64(entry.path().filename().string())) {
-            files += entry.path().filename().string() + SPERATOR;
+            files += entry.path().filename().string() + SEPARATOR;
         }
     }
     logger->info("Sending files...");
@@ -155,9 +155,9 @@ void Server::downloadFile(std::vector<std::string> args) {
 
     file.close();
 
-    std::string fileContents = fileContentsAndResourceId.substr(0, fileContentsAndResourceId.find(SPERATOR));
+    std::string fileContents = fileContentsAndResourceId.substr(0, fileContentsAndResourceId.find(SEPARATOR));
     logger->info("File contents: {}", fileContents);
-    std::string resourceId = fileContentsAndResourceId.substr(fileContentsAndResourceId.find(SPERATOR) + 1);
+    std::string resourceId = fileContentsAndResourceId.substr(fileContentsAndResourceId.find(SEPARATOR) + 1);
     checkPermissionKeycloak(resourceId, user_access_token, "download");
     logger->info("Sending file contents...");
     send(fileContents);
@@ -204,7 +204,7 @@ void Server::uploadFile(std::vector<std::string> args) {
         resourceId = json["_id"];
         logger->info("Keycloak resource created!");
         // append resource id to file
-        outfile << SPERATOR << resourceId;
+        outfile << SEPARATOR << resourceId;
         outfile.close();
         send("OK");
     }
@@ -252,7 +252,7 @@ void Server::login(std::vector<std::string> args) {
         logger->info("Sending tokens...");
 
         // send OK
-        send(access_token + SPERATOR + refresh_token);
+        send(access_token + SEPARATOR + refresh_token);
     } catch (std::exception &e) {
         logger->error("Login failed: {}", e.what());
         throw std::runtime_error("Login failed");
@@ -528,7 +528,7 @@ void Server::refreshToken(std::vector<std::string> args) {
         auto jsonResponse = this->refreshToken(refresh_token);
         logger->info("Token refreshed!");
         // send OK
-        send(jsonResponse["access_token"].dump() + SPERATOR + jsonResponse["refresh_token"].dump());
+        send(jsonResponse["access_token"].dump() + SEPARATOR + jsonResponse["refresh_token"].dump());
     } catch (std::exception &e) {
         logger->error("Refresh failed: {}", e.what());
         throw std::runtime_error("Refresh failed");
