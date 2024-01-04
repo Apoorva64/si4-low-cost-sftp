@@ -16,11 +16,20 @@
 #include "curl_exception.h"
 #include "jwt-cpp/jwt.h"
 
-#define SPERATOR '|'
 #define FILES_FOLDER "files"
 //https://keycloak.auth.apoorva64.com/realms/projet-secu/protocol/openid-connect/certs
 std::string RAW_JWKS = R"({"keys":[{"kid":"9cgFE7e849rMB0fxe2HEud-3noZz-dBPEpdcZHOLOwY","kty":"RSA","alg":"RS256","use":"sig","n":"1f8yK8W9dOu2GXvA4pZAxVQLeKkLiU5UsQs0Eyux64yqjMiO9hhRXlwaLLH5aG4wqGRmcFUYBS4-LrkTzyTTrNPIurcLTm5qRhMb0ZGyv0uYZQvxRHvGjg6ZmGrv9KNlBcwJoVRAZ_kvXRlBGrDYgCkqpx7yzgsAPDf9Aqc_PSjZl4Ldxk64sz5-c39rOdLN2QW96ypQlp-N6hlINmwcFXiRcMhsA47TCKmlRIhfqFup3aaN8ishUyIbemrHZi_RsdJubq8Ddf32PIkaGxS2UMQOLMBEhUbjoCob0Vd0C00o_mi4eGR9eAe070lVkLBF9Z6IfTT5J5QC9l0soPNlHw","e":"AQAB","x5c":["MIICpTCCAY0CBgGMlzrSBDANBgkqhkiG9w0BAQsFADAWMRQwEgYDVQQDDAtwcm9qZXQtc2VjdTAeFw0yMzEyMjMxNTA5MjNaFw0zMzEyMjMxNTExMDNaMBYxFDASBgNVBAMMC3Byb2pldC1zZWN1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1f8yK8W9dOu2GXvA4pZAxVQLeKkLiU5UsQs0Eyux64yqjMiO9hhRXlwaLLH5aG4wqGRmcFUYBS4+LrkTzyTTrNPIurcLTm5qRhMb0ZGyv0uYZQvxRHvGjg6ZmGrv9KNlBcwJoVRAZ/kvXRlBGrDYgCkqpx7yzgsAPDf9Aqc/PSjZl4Ldxk64sz5+c39rOdLN2QW96ypQlp+N6hlINmwcFXiRcMhsA47TCKmlRIhfqFup3aaN8ishUyIbemrHZi/RsdJubq8Ddf32PIkaGxS2UMQOLMBEhUbjoCob0Vd0C00o/mi4eGR9eAe070lVkLBF9Z6IfTT5J5QC9l0soPNlHwIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBHda/Ge2ZBMV1bNW2wHd/+PqLzRBmSnvFIO3BdUSgqM1U69+J7WqF/KkvtbcC7MK3OtSv7DNgxswP6nemTDoeG8RY+wkj5QPsXP5waxRB/Hb8TbhVnved4fR35Z3cPIIX+V1A3xgxn2fTl2nSaKIXq1JZHoQ9I3RNh+7zeNi2OhRo2C07f+w66WabowWgSZ6hTiCwfvR2f8KMpuck2Ro42VXMvsK+c0bjY33jXuImtXkim/QCzxQkWG6XNDLmtrv89xA1WhU3plSSXDArXSx7sgwKc2VipCcy1ZPoEMt78ChftAJxVJpb2l+p1vErZy6HAf4OHpfDlSx03cw0IZ5wv"],"x5t":"Namnuyi650xu_T_44vGIWBYbo9Y","x5t#S256":"OZ3egsK_3CObMwS30MdxOGWrXFZSDEjS7fSFO2O2i0Q"},{"kid":"dY_HoGKPr_c6e-G1i2770oV6tfsWorBtRa7cfi5_hs4","kty":"RSA","alg":"RSA-OAEP","use":"enc","n":"vf5jtEYbBHr9gkW7NJBdFDinwLXXC1TgGDKjWmlxthRESfQhk6Sm-_ij22RbcNYtnpidXW7vF0OdmSi0EGupkog7CuRuLOfsQ8h-9Fvh6BehMPYRw1ICro74rESD5gspHAadgI4gnWl9QcSH6EFlck2L796KrPbtBwIecqAJVBK6uP8MfVjcRhU_UA9dqRQi3AMqH_2s-xy1yWyqEPIimjY7wOYM7d9t5Gz4a6KsZYePF_d_FW7K0m4K7rD93wQKgbZVTscdSNvcL1NmeZ8TWV7KlNDHqLdh2h5Cdfrp9oA-KdEJZSjT-h9W1DdbUPfP-AU5OxjG9johORT--0txtQ","e":"AQAB","x5c":["MIICpTCCAY0CBgGMlzrTzzANBgkqhkiG9w0BAQsFADAWMRQwEgYDVQQDDAtwcm9qZXQtc2VjdTAeFw0yMzEyMjMxNTA5MjRaFw0zMzEyMjMxNTExMDRaMBYxFDASBgNVBAMMC3Byb2pldC1zZWN1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvf5jtEYbBHr9gkW7NJBdFDinwLXXC1TgGDKjWmlxthRESfQhk6Sm+/ij22RbcNYtnpidXW7vF0OdmSi0EGupkog7CuRuLOfsQ8h+9Fvh6BehMPYRw1ICro74rESD5gspHAadgI4gnWl9QcSH6EFlck2L796KrPbtBwIecqAJVBK6uP8MfVjcRhU/UA9dqRQi3AMqH/2s+xy1yWyqEPIimjY7wOYM7d9t5Gz4a6KsZYePF/d/FW7K0m4K7rD93wQKgbZVTscdSNvcL1NmeZ8TWV7KlNDHqLdh2h5Cdfrp9oA+KdEJZSjT+h9W1DdbUPfP+AU5OxjG9johORT++0txtQIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQCWszbfphWqhBhuwZQG9ohycPhXU2fKaYA8+psfgpCbZ0LoK4iPr2D/cph7Anll36j/Dg3Ma9METIHd+7cACEiL0d28kjawZCOBPtSU8fZDH5wKMHuFkv+KxZgP8o1ezQFfJJPbCpIQBSeOM28N3/6cQr5+L8VL4N19lihthXFSHWQGE5lmoIbdKeRVsZChkCIOAUGas9A+GPSWmb6bXAIMFURpCCad7xQJQd6P/ee1ehdWmfy8IriKLAecD724J/388WzUrD3cApGc62RzAzOoCpEQpWZwGoB2+pt3RIGaytfQuK9ssTsqMQhggIJI4z/4fpxNwunSchYVtJOZib9q"],"x5t":"gtgHKuEcS8CGM0jk2-oXSAL3sFU","x5t#S256":"Rt9xuJruGJPxSr4IFnx2Ht1Hj9zP53kT2Z19eCeEMVE"}]})";
 
+/**
+ * @brief Constructs a Server object with specified input and output ports.
+ *
+ * Initializes the Server object with the input and output ports, sets up a logger,
+ * and creates a directory for storing files if it does not exist. It also refreshes
+ * the server tokens for Keycloak authentication.
+ *
+ * @param inPort1 The input port number for the server.
+ * @param outPort The output port number for the server.
+ */
 Server::Server(int inPort1, int outPort) : SocketCommunication(inPort1, outPort) {
     this->add_option("-p,--port", this->inPort, "Port to listen on")->required();
     this->add_option("-o,--outport", this->outPort, "Port to send messages to")->required();
@@ -32,10 +41,26 @@ Server::Server(int inPort1, int outPort) : SocketCommunication(inPort1, outPort)
 
 }
 
+
+/**
+ * @brief Constructs a Server object with a specified input port.
+ *
+ * Initializes the Server object with the input port and sets up the output port to 0.
+ *
+ * @param inPort1 The input port number for the server.
+ */
 Server::Server(int inPort1) : SocketCommunication(inPort1, 0) {
 
 }
 
+/**
+ * @brief Handles incoming messages and executes corresponding server actions.
+ *
+ * Processes incoming messages as Command objects and performs actions based on the command type,
+ * such as handling SSL handshake, login, file upload, download, listing, deletion, and token refresh.
+ *
+ * @param msg The raw string message received from the client.
+ */
 void Server::handleMessage(const std::string &msg) {
     try {
         SocketCommunication::handleMessage(msg);
@@ -75,6 +100,14 @@ void Server::handleMessage(const std::string &msg) {
 
 }
 
+/**
+ * @brief Deletes a file from the server and its associated Keycloak resource.
+ *
+ * Validates the user's access token and permissions, then deletes the specified file and
+ * its Keycloak resource if the user has the necessary permissions.
+ *
+ * @param args A vector of strings containing the filename and user's access token.
+ */
 void Server::deleteFile(std::vector<std::string> args) {
     const std::string &filename = args[0];
     if (OpenSSL::is_base64(filename)) {
@@ -115,6 +148,11 @@ void Server::deleteFile(std::vector<std::string> args) {
 
 }
 
+/**
+ * @brief Lists all files stored on the server.
+ *
+ * Gathers the names of all files stored in the server's file directory and sends them to the client.
+ */
 void Server::listFiles() {
     logger->info("Listing files...");
     std::string files;
@@ -128,6 +166,13 @@ void Server::listFiles() {
     logger->info("Files sent!");
 }
 
+/**
+ * @brief Handles the file download request from the client.
+ *
+ * Validates the user's access token and permissions, then sends the requested file's contents to the client.
+ *
+ * @param args A vector of strings containing the filename and user's access token.
+ */
 void Server::downloadFile(std::vector<std::string> args) {
     const std::string &user_access_token = args[1];
     std::string base64Filename = args[0];
@@ -167,6 +212,13 @@ void Server::downloadFile(std::vector<std::string> args) {
     logger->info("File sent!");
 }
 
+/**
+ * @brief Handles the file upload request from the client.
+ *
+ * Validates the user's access token, creates a Keycloak resource, and stores the file on the server.
+ *
+ * @param args A vector of strings containing the filename, file contents, and user's access token.
+ */
 void Server::uploadFile(std::vector<std::string> args) {
     // create keycloak resource
     verifyOrRefreshServerTokens();
@@ -235,6 +287,14 @@ void Server::uploadFile(std::vector<std::string> args) {
 
 }
 
+/**
+ * @brief Authenticates a user with Keycloak using their username and password.
+ *
+ * Decodes the base64-encoded username and password, authenticates with Keycloak, and sends the access
+ * and refresh tokens back to the client.
+ *
+ * @param args A vector of strings containing the base64-encoded username and password.
+ */
 void Server::login(std::vector<std::string> args) {
     std::string username = args[0];
     std::string password = args[1];
@@ -262,7 +322,15 @@ void Server::login(std::vector<std::string> args) {
     }
 }
 
-
+/**
+ * @brief Authenticates a user with Keycloak using their username and password.
+ *
+ * Sends a request to Keycloak to authenticate the user and returns the JSON response containing the tokens.
+ *
+ * @param username The user's username.
+ * @param password The user's password.
+ * @return nlohmann::json The JSON response from Keycloak containing the access and refresh tokens.
+ */
 nlohmann::json Server::login(std::string username, std::string password) {
 
     // Let's declare a stream
@@ -324,12 +392,22 @@ nlohmann::json Server::login(std::string username, std::string password) {
     throw std::runtime_error("Token verification failed: ");
 }
 
+/**
+ * @brief Refreshes the server's access token with Keycloak.
+ *
+ * Logs in the server admin with Keycloak to refresh the server's access token.
+ */
 void Server::refreshServerTokens() {
     logger->info("Refreshing server tokens...");
     auto decoded = this->login("admin", "ZKqudE5ZDxUA7xf");
     this->resourceServerAccessToken = decoded["access_token"];
 }
 
+/**
+ * @brief Verifies or refreshes the server's access token.
+ *
+ * Verifies the server's current access token and refreshes it if necessary.
+ */
 void Server::verifyOrRefreshServerTokens() {
     logger->info("Verifying server tokens...");
     auto decoded = jwt::decode(this->resourceServerAccessToken);
@@ -348,6 +426,15 @@ void Server::verifyOrRefreshServerTokens() {
     refreshServerTokens();
 }
 
+/**
+ * @brief Creates a Keycloak resource for a file.
+ *
+ * Sends a request to Keycloak to create a resource for the file with the specified filename and owner.
+ *
+ * @param filename The name of the file.
+ * @param owner The owner of the file.
+ * @return nlohmann::basic_json<> The JSON response from Keycloak containing the resource details.
+ */
 nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, const std::string &owner) {
     logger->info("Creating keycloak resource for file: {}", filename);
     std::string createResourceUrl = "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu/clients/1aa674a2-3169-4041-bc82-dbe6cf1de68c/authz/resource-server/resource";
@@ -394,6 +481,13 @@ nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, cons
 }
 
 
+/**
+ * @brief Deletes a Keycloak resource associated with a file.
+ *
+ * Sends a request to Keycloak to delete the resource associated with the specified filename.
+ *
+ * @param filename The name of the file whose Keycloak resource should be deleted.
+ */
 void Server::deleteKeycloakResource(const std::string &filename) {
     logger->info("Deleting keycloak resource for file: {}", filename);
     std::string deleteResourceUrl =
@@ -427,6 +521,15 @@ void Server::deleteKeycloakResource(const std::string &filename) {
 
 }
 
+/**
+ * @brief Checks if the user has the specified permission for a file in Keycloak.
+ *
+ * Sends a permission check request to Keycloak for the specified file, user access token, and permission.
+ *
+ * @param filename The name of the file.
+ * @param requesterAccessToken The access token of the user requesting permission.
+ * @param permission The permission to check (e.g., "download" or "delete").
+ */
 void
 Server::checkPermissionKeycloak(std::string filename, const std::string &requesterAccessToken, std::string permission) {
     auto decoded = jwt::decode(requesterAccessToken);
@@ -485,7 +588,14 @@ Server::checkPermissionKeycloak(std::string filename, const std::string &request
     throw std::runtime_error("Permission denied");
 }
 
-
+/**
+ * @brief Refreshes a user's access token with Keycloak using their refresh token.
+ *
+ * Sends a request to Keycloak to refresh the user's access token using their refresh token and returns the JSON response.
+ *
+ * @param refresh_token The refresh token to use for refreshing the access token.
+ * @return nlohmann::json The JSON response from Keycloak containing the new access and refresh tokens.
+ */
 nlohmann::json Server::refreshToken(std::string refresh_token) {
     // Let's declare a stream
     std::ostringstream stream;
@@ -523,7 +633,13 @@ nlohmann::json Server::refreshToken(std::string refresh_token) {
     return json;
 }
 
-
+/**
+ * @brief Handles a token refresh request from the client.
+ *
+ * Refreshes the client's access token using the provided refresh token and sends the new tokens back to the client.
+ *
+ * @param args A vector of strings containing the refresh token.
+ */
 void Server::refreshToken(std::vector<std::string> args) {
     std::string refresh_token = args[0];
     logger->info("Refreshing token: {}", refresh_token);
@@ -538,7 +654,14 @@ void Server::refreshToken(std::vector<std::string> args) {
     }
 }
 
-
+/**
+ * @brief Adds default permissions for a Keycloak resource.
+ *
+ * Sends a request to Keycloak to add default permissions for the specified resource and owner access token.
+ *
+ * @param resourceId The ID of the Keycloak resource.
+ * @param ownerAccessToken The access token of the owner of the resource.
+ */
 void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::string &ownerAccessToken) {
     logger->info("Adding default permissions for file: {}", resourceId);
     std::string permissionUrl =
@@ -584,7 +707,14 @@ void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::st
 
     logger->info("Default permissions added!");
 }
-
+/**
+ * @brief Handles the SSL handshake process with the client.
+ *
+ * Performs the SSL handshake by exchanging public keys with the client, decrypting the AES key and IV,
+ * and completing the challenge-response verification.
+ *
+ * @param args A vector of strings containing the client's public key.
+ */
 void Server::sslHandshake(std::vector<std::string> args) {
     if (args.size() != 1) {
         throw std::runtime_error("Error args SSL Handshake");
@@ -628,7 +758,11 @@ void Server::sslHandshake(std::vector<std::string> args) {
     logger->info("SSL Handshake complete !");
 }
 
-
+/**
+ * @brief Resets all Keycloak resources.
+ *
+ * Retrieves and deletes all Keycloak resources associated with the server's client in Keycloak.
+ */
 void Server::ResetKeycloak() {
     logger->info("Reset Keycloak");
 
