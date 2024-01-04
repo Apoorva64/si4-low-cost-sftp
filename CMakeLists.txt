@@ -17,6 +17,7 @@ add_subdirectory(external-libs/curlcpp)
 add_subdirectory(external-libs/ThreadPool)
 add_subdirectory(common)
 add_subdirectory(server)
+add_subdirectory(peer-server)
 add_subdirectory(client)
 add_subdirectory(tests)
 

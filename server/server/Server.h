@@ -5,7 +5,7 @@
 #ifndef SECTRANS_SERVER_H
 #define SECTRANS_SERVER_H
 
-
+#include "CLI11.hpp"
 #include "SocketCommunication/SocketCommunication.h"
 #include "jwt-cpp/jwt.h"
 #include "nlohmann/json.hpp"
@@ -14,7 +14,7 @@ struct default_clock {
         return jwt::date(std::chrono::system_clock::now());
     }
 };
-class Server : public SocketCommunication {
+class Server : public CLI::App ,public SocketCommunication {
 
 
     void handleMessage(const std::string &msg)  override;
@@ -66,6 +66,8 @@ public:
     void addDefaultPermissionsKeycloak(std::string resourceId, const std::string &ownerAccessToken);
 
     void ResetKeycloak();
+
+    bool doSendPort;
 };
 
 

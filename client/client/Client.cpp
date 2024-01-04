@@ -33,9 +33,11 @@ std::string RAW_JWKS = R"({"keys":[{"kid":"9cgFE7e849rMB0fxe2HEud-3noZz-dBPEpdcZ
  */
 Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunication(inPort, outPort) {
     this->logger = spdlog::stdout_color_mt("Client");
+    this->add_option("-i,--inPort", this->inPort, "Specify input port number");
     App *upload = this->add_subcommand("upload", "Upload a file");
     upload->add_option("-f,--file", this->filename, "Specify file to upload")->required()->check(CLI::ExistingFile);
     upload->callback([this]() {
+        this->start();
         this->upload();
     });
 
@@ -43,27 +45,32 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
     App *download = this->add_subcommand("download", "Download a file");
     download->add_option("-f,--file", this->filename, "Specify file to download")->required();
     download->callback([this]() {
+        this->start();
         this->download();
     });
     App *login = this->add_subcommand("login", "Login to server");
     login->callback([this]() {
+        this->start();
         this->login();
     });
     App *deleteFile = this->add_subcommand("delete", "Delete a file");
     deleteFile->add_option("-f,--file", this->filename, "Specify file to delete")->required();
     deleteFile->callback([this]() {
+        this->start();
         this->deleteFile(this->filename);
     });
 
     App *list = this->add_subcommand("list", "List files on server");
     list->callback([this]() {
+        this->start();
         this->listFiles();
     });
     App *help = this->add_subcommand("help", "Display help");
+    this->parse(argc, argv);
+    this->logger->info("Input port: {}", this->inPort);
     this->start();
     this->test();
     this->negotiate();
-    this->parse(argc, argv);
 }
 
 /**
@@ -77,9 +84,11 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
  * If there is an error in receiving a message from the server, it throws a runtime error.
  */
 void Client::start() {
-    SocketCommunication::start();
+    startserver(8081);
     Command cmd(INIT_SESSION, {std::to_string(this->inPort)});
     SocketCommunication::send(cmd.toString());
+    stopserver();
+    SocketCommunication::start();
     char *msg2 = new char[1024];
     int error = getmsg(msg2);
     if (error == -1) {
@@ -99,6 +108,7 @@ void Client::start() {
     logger->info("Init session OK");
     this->logger->info("New Port {}", newOutPort);
     this->outPort = std::stoi(newOutPort);
+
 }
 
 /**
