@@ -4,6 +4,15 @@
 #include "OpenSSL.h"
 #include "OpenSSL_Utils.h"
 
+/**
+ * @brief Generates an RSA key pair.
+ *
+ * Creates a new RSA key pair with a specified key size using OpenSSL's EVP functions.
+ * Returns a pointer to the generated key pair.
+ *
+ * @return EVP_PKEY* A pointer to the generated RSA key pair.
+ * @throws std::runtime_error If any step of the key generation process fails.
+ */
 EVP_PKEY * OpenSSL::rsa_key_generation() {
     EVP_PKEY_CTX * kctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, nullptr);
     EVP_PKEY *pkey = nullptr;
@@ -31,6 +40,17 @@ EVP_PKEY * OpenSSL::rsa_key_generation() {
     return pkey;
 }
 
+/**
+ * @brief Encrypts a message using RSA and OAEP padding.
+ *
+ * Encrypts the provided message using the specified RSA public key and OAEP padding.
+ * Returns the encrypted message as a string.
+ *
+ * @param key The RSA public key for encryption.
+ * @param message The plaintext message to encrypt.
+ * @return std::string The encrypted message as a string.
+ * @throws std::runtime_error If any step of the encryption process fails.
+ */
 std::string OpenSSL::rsa_encrypt(EVP_PKEY *key, const std::string &message) {
     EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(key, nullptr);
     unsigned char *out, *in;
@@ -64,6 +84,17 @@ std::string OpenSSL::rsa_encrypt(EVP_PKEY *key, const std::string &message) {
     return result;
 }
 
+/**
+ * @brief Decrypts a message using RSA and OAEP padding.
+ *
+ * Decrypts the provided message using the specified RSA private key and OAEP padding.
+ * Returns the decrypted message as a string.
+ *
+ * @param key The RSA private key for decryption.
+ * @param message The encrypted message to decrypt.
+ * @return std::string The decrypted message as a string.
+ * @throws std::runtime_error If any step of the decryption process fails.
+ */
 std::string OpenSSL::rsa_decrypt(EVP_PKEY *key, const std::string &message) {
     EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(key, nullptr);
     unsigned char *out, *in;

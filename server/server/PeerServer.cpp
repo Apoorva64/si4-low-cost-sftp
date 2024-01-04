@@ -9,8 +9,15 @@
 #include "Command/CommandEnum.h"
 #include "Command/Command.h"
 
-#define SPERATOR '|'
-
+/**
+ * @brief Handles incoming messages and executes corresponding actions.
+ *
+ * Overrides the handleMessage method from the SocketCommunication class to process
+ * incoming messages as Command objects. It performs actions based on the command type.
+ * If an INIT_SESSION command is received, it initializes a session. Logs an error for unknown commands.
+ *
+ * @param msg The raw string message received from the peer.
+ */
 void PeerServer::handleMessage(const std::string &msg) {
     try {
         SocketCommunication::handleMessage(msg);
@@ -31,15 +38,42 @@ void PeerServer::handleMessage(const std::string &msg) {
     }
 }
 
+/**
+ * @brief Constructs a PeerServer with a specified input port.
+ *
+ * Initializes the PeerServer with a reference to a SessionStorage object and an input port.
+ * Starts the thread pool with a capacity based on the session storage's capacity.
+ *
+ * @param st Pointer to the SessionStorage object.
+ * @param inPort1 The input port number for the server.
+ */
 PeerServer::PeerServer(SessionStorage *st, int inPort1) : SocketCommunication(inPort1, 0), storage(st), threadPool(){
     threadPool.start(st->getSessionCapacity());
 }
 
+/**
+ * @brief Constructs a PeerServer with specified input and output ports.
+ *
+ * Initializes the PeerServer with a reference to a SessionStorage object, an input port, and an output port.
+ * Starts the thread pool with a capacity based on the session storage's capacity.
+ *
+ * @param st Pointer to the SessionStorage object.
+ * @param inPort1 The input port number for the server.
+ * @param outPort The output port number for the server.
+ */
 PeerServer::PeerServer(SessionStorage *st, int inPort1, int outPort) : SocketCommunication(inPort1, outPort), storage(st),
                                                                        threadPool(){
     threadPool.start(st->getSessionCapacity());
 }
 
+/**
+ * @brief Initializes a session for a client.
+ *
+ * Creates a new session using the SessionStorage object, queues a job to manage the client,
+ * and sends the session information back to the client.
+ *
+ * @param args A vector of strings containing the arguments for the INIT_SESSION command.
+ */
 void PeerServer::initSession(std::vector<std::string> args) {
     if(args.empty()){
         logger->error("Missing port");
@@ -53,6 +87,14 @@ void PeerServer::initSession(std::vector<std::string> args) {
     this->threadPool.queueJob(PeerServer::manageClient, idSession);
 }
 
+/**
+ * @brief Manages a client session.
+ *
+ * Static method that retrieves a session from the session storage and starts a sub-server
+ * to handle communication with the client for that session.
+ *
+ * @param idSession The session ID for the client to manage.
+ */
 void PeerServer::manageClient(int idSession) {
     SESSION_CLIENT sessionClient;
     std::mutex lock;
