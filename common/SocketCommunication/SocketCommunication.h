@@ -89,6 +89,8 @@ public:
      * @brief Run the main loop to handle incoming messages.
      */
     [[noreturn]] void run();
+
+    static void Close();
 };
 
 #endif //SECTRANS_SOCKETCOMMUNICATION_H

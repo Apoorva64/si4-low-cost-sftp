@@ -166,6 +166,10 @@ public:
     void ResetKeycloak();
 
     bool doSendPort;
+    bool autoClose;
+
+    void Reset();
+
 };
 
 

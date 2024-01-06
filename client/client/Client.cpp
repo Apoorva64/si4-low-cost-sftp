@@ -68,9 +68,7 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
     App *help = this->add_subcommand("help", "Display help");
     this->parse(argc, argv);
     this->logger->info("Input port: {}", this->inPort);
-    this->start();
-    this->test();
-    this->negotiate();
+
 }
 
 /**
@@ -108,6 +106,8 @@ void Client::start() {
     logger->info("Init session OK");
     this->logger->info("New Port {}", newOutPort);
     this->outPort = std::stoi(newOutPort);
+    this->test();
+    this->negotiate();
 
 }
 

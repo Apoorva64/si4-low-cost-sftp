@@ -211,3 +211,8 @@ void SocketCommunication::handleMessage(const std::string &msg) {
         this->handleMessage(msg);
     }
 }
+
+void SocketCommunication::Close() {
+    stopserver();
+
+}

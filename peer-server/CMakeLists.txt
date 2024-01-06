@@ -13,7 +13,8 @@ target_link_libraries(SecTransPeerServer libclient libserver ThreadPool OpenSSL 
 add_custom_command(TARGET SecTransPeerServer POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_SOURCE_DIR}/SecTransServer
-        ${CMAKE_CURRENT_BINARY_DIR}/SecTransServer)
+        ${CMAKE_CURRENT_BINARY_DIR}/SecTransServer
+        )
 
 # build release
 #set(CMAKE_BUILD_TYPE Release)

@@ -103,13 +103,6 @@ void PeerServer::manageClient(int idSession) {
     lock.unlock();
 
     // start server with subprocess
-    std::string command = "./SecTransServer -p " + std::to_string(sessionClient.serverPort) + " -o " + std::to_string(sessionClient.clientPort) + " -s 1";
+    std::string command = "./SecTransServer start -p " + std::to_string(sessionClient.serverPort) + " -o " + std::to_string(sessionClient.clientPort) + " -s 1 -c 1";
     std::system(command.c_str());
-
-
-//    auto subServer = Server(sessionClient.serverPort, sessionClient.clientPort);
-//
-//    subServer.start();
-//    subServer.send(std::to_string(sessionClient.serverPort));
-//    subServer.run();
 }

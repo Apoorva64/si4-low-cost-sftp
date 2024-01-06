@@ -31,14 +31,30 @@ std::string RAW_JWKS = R"({"keys":[{"kid":"9cgFE7e849rMB0fxe2HEud-3noZz-dBPEpdcZ
  * @param outPort The output port number for the server.
  */
 Server::Server(int inPort1, int outPort) : SocketCommunication(inPort1, outPort) {
-    this->add_option("-p,--port", this->inPort, "Port to listen on")->required();
-    this->add_option("-o,--outport", this->outPort, "Port to send messages to")->required();
-    this->add_option("-s,--doSendPort", this->doSendPort, "Whether to send the port number to the server");
-    this->logger = spdlog::stdout_color_mt(fmt::format("Server[{},{}]", inPort1, outPort));
     // create files folder if not exists
     std::filesystem::create_directory(FILES_FOLDER);
     refreshServerTokens();
-
+    App *start = this->add_subcommand("start", "Starts the server");
+    start->add_option("-p,--port", this->inPort, "Port to listen on")->required();
+    start->add_option("-o,--outport", this->outPort, "Port to send messages to")->required();
+    start->add_option("-s,--doSendPort", this->doSendPort, "Whether to send the port number to the server");
+    start->add_option("-c,--autoclose", this->autoClose, "Whether to close the connection after one interaction");
+    start->callback([&]() {
+                        this->start();
+                        if (this->doSendPort) {
+                            this->send(std::to_string(this->inPort));
+                        }
+                        this->run();
+                    }
+    );
+    this->logger = spdlog::stdout_color_mt(fmt::format("Server[{},{}]", this->inPort, this->outPort));
+    App *reset = this->add_subcommand("reset", "Resets the server (deletes all files and Keycloak resources)");
+    reset->callback([&]() {
+        logger->info("Resetting server...");
+        Reset();
+        logger->info("Server reset!");
+        std::exit(0);
+    });
 }
 
 
@@ -63,39 +79,60 @@ Server::Server(int inPort1) : SocketCommunication(inPort1, 0) {
  */
 void Server::handleMessage(const std::string &msg) {
     try {
-        SocketCommunication::handleMessage(msg);
-        Command command(msg);
+        if (msg == "Ping") {
+            this->send("Pong");
+        } else {
+            Command command(msg);
 
-        switch (command.commandEnum) {
-            case SSL_HANDSHAKE:
-                sslHandshake(command.args);
-                break;
-            case LOGIN:
-                login(command.args);
-                break;
-            case UPLOAD:
-                uploadFile(command.args);
-                break;
-            case DOWNLOAD:
-                downloadFile(command.args);
-                break;
-            case LIST:
-                listFiles();
-                break;
-            case DELETE:
-                deleteFile(command.args);
-                break;
-            case REFRESH_TOKEN:
-                refreshToken(command.args);
-                break;
-            case UNKNOWN:
-                logger->error("Unknown command: {}", command.toString());
-                break;
+            switch (command.commandEnum) {
+                case SSL_HANDSHAKE:
+                    sslHandshake(command.args);
+                    break;
+                case LOGIN:
+                    login(command.args);
+                    break;
+                case UPLOAD:
+                    uploadFile(command.args);
+                    break;
+                case DOWNLOAD:
+                    downloadFile(command.args);
+                    break;
+                case LIST:
+                    listFiles();
+                    break;
+                case DELETE:
+                    deleteFile(command.args);
+                    break;
+                case REFRESH_TOKEN:
+                    refreshToken(command.args);
+                    break;
+                case UNKNOWN:
+                    logger->error("Unknown command: {}", command.toString());
+                    break;
+                case INIT_SESSION:
+                    logger->error("Invalid command: {}", command.toString());
+                    break;
+
+            }
+
+            if (this->autoClose && command.commandEnum != SSL_HANDSHAKE && command.commandEnum != LOGIN &&
+                command.commandEnum != REFRESH_TOKEN) {
+                logger->info("Closing connection...");
+                Server::Close();
+                logger->info("Connection closed!");
+                std::exit(0);
+            }
         }
     }
     catch (std::exception &e) {
         logger->error("Error: {}", e.what());
         send("ERROR");
+        if (this->autoClose) {
+            logger->info("Closing connection...");
+            Server::Close();
+            logger->info("Connection closed!");
+            std::exit(0);
+        }
     }
 
 }
@@ -707,6 +744,7 @@ void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::st
 
     logger->info("Default permissions added!");
 }
+
 /**
  * @brief Handles the SSL handshake process with the client.
  *
@@ -803,5 +841,13 @@ void Server::ResetKeycloak() {
         std::string resourceId = element["_id"];
         logger->info("Deleting resource: {}", resourceId);
         deleteKeycloakResource(resourceId);
+    }
+}
+
+void Server::Reset() {
+    logger->info("Reset Server");
+    ResetKeycloak();
+    for (const auto &entry: std::filesystem::directory_iterator(FILES_FOLDER)) {
+        std::filesystem::remove(entry.path());
     }
 }
