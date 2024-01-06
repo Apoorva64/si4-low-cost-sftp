@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 add_executable(SecTransPeerServer main.cpp
         PeerServer/PeerServer.cpp
         PeerServer/PeerServer.h
