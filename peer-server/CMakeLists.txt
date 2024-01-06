@@ -8,11 +8,11 @@ add_executable(SecTransPeerServer main.cpp
 )
 #INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
 target_link_libraries(SecTransPeerServer libclient libserver ThreadPool OpenSSL common spdlog curlcpp nlohmann_json::nlohmann_json jwt-cpp)
-
+add_dependencies(SecTransPeerServer SecTransServer)
 # Copy SecTransServer executable with POST_BUILD command
 add_custom_command(TARGET SecTransPeerServer POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/SecTransServer
+        ${CMAKE_BINARY_DIR}/server/SecTransServer
         ${CMAKE_CURRENT_BINARY_DIR}/SecTransServer
         )
 
