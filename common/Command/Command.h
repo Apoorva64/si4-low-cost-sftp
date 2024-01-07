@@ -9,7 +9,7 @@
 #include <vector>
 #include <sstream>
 #include "CommandEnum.h"
-const std::string SEPARATOR = "|"; ///< The separator for the command string.
+const char SEPARATOR = '|'; ///< The separator for the command string.
 
 /**
  * @class Command
