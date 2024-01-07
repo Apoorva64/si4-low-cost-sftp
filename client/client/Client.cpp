@@ -349,6 +349,9 @@ void Client::login() {
     Command command(LOGIN, {OpenSSL::base64_encode(username), OpenSSL::base64_encode(password)});
     this->send(command.toString());
     std::string response = this->receiveString();
+
+    // HERE needs to be added a parsing of the command sent by the server
+
     if (response == "ERROR") {
         std::cout << "Login failed!" << std::endl;
         throw std::runtime_error("Login failed");

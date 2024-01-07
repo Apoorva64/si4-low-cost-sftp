@@ -23,11 +23,6 @@ struct default_clock {
  * It provides functionalities for handling incoming messages, SSL handshake, file operations, token management, and Keycloak resource management.
  */
 class Server : public CLI::App ,public SocketCommunication {
-
-
-
-
-
     /**
      * @brief Handle an incoming message.
      *

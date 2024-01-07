@@ -28,7 +28,7 @@ std::vector<std::string> Command::split(const std::string &str, char delimiter) 
  * @brief Converts the Command object to a string representation.
  *
  * This method constructs a string that represents the Command object by concatenating
- * the command enum value with its arguments, separated by the defined SPERATOR character.
+ * the command enum value with its arguments, separated by the defined SEPARATOR character.
  *
  * @return std::string A string representation of the Command object.
  */
@@ -49,10 +49,9 @@ std::string Command::toString() const {
  * @param commandEnum The command enum value.
  * @param args A vector of strings representing the arguments for the command.
  */
-Command::Command(const std::string &commandString) {
-    std::string command = commandString.substr(0, commandString.find(SEPARATOR));
-    commandEnum = getCommandEnum(command);
-    args = split(commandString.substr(commandString.find(SEPARATOR) + 1), SEPARATOR);
+Command::Command(const std::string &commandString): Arguments(commandString){
+    commandEnum = Command::getCommandEnum(args[0]);
+    args.erase(args.begin());
 
 }
 
@@ -76,6 +75,7 @@ CommandEnum Command::getCommandEnum(const std::string &command) {
             {"4", DELETE},
             {"7", INIT_SESSION},
             {"8", SSL_HANDSHAKE},
+            {"9", SERVER_ERROR}
     };
 
     auto it = commandMap.find(command);

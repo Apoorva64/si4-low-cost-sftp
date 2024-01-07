@@ -7,6 +7,12 @@ add_library(common STATIC
         Command/CommandEnum.h
         Command/Command.cpp
         Command/Command.h
+        Response/Response.cpp
+        Response/Response.h
+        Args/Arguments.cpp
+        Args/Arguments.h
+        Response/Response.h
+        Response/ResponseEnum.h
 )
 
 

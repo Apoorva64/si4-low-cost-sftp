@@ -15,6 +15,7 @@
 #include "curl_pair.h"
 #include "curl_exception.h"
 #include "jwt-cpp/jwt.h"
+#include "../errors/PublicServerRuntimeError.h"
 
 const std::string FILES_FOLDER = "files";
 
@@ -111,7 +112,9 @@ void Server::handleMessage(const std::string &msg) {
                 case INIT_SESSION:
                     logger->error("Invalid command: {}", command.toString());
                     break;
-
+                case SERVER_ERROR:
+                    logger->error("Client error: {}", command.toString());
+                    break;
             }
 
             if (this->autoClose && command.commandEnum != SSL_HANDSHAKE && command.commandEnum != LOGIN &&
@@ -123,8 +126,22 @@ void Server::handleMessage(const std::string &msg) {
             }
         }
     }
+    catch (PublicServerRuntimeError &e) {
+        logger->error("{}", e.what());
+
+        Command command(SERVER_ERROR, {e.what()});
+        send(command.toString());
+
+        if (this->autoClose) {
+            logger->info("Closing connection...");
+            Server::Close();
+            logger->info("Connection closed!");
+            std::exit(0);
+        }
+    }
     catch (std::exception &e) {
         logger->error("Error: {}", e.what());
+        // TODO: Replace with command
         send("ERROR");
         if (this->autoClose) {
             logger->info("Closing connection...");
@@ -133,7 +150,6 @@ void Server::handleMessage(const std::string &msg) {
             std::exit(0);
         }
     }
-
 }
 
 /**
@@ -354,7 +370,7 @@ void Server::login(std::vector<std::string> args) {
         send(access_token + SEPARATOR + refresh_token);
     } catch (std::exception &e) {
         logger->error("Login failed: {}", e.what());
-        throw std::runtime_error("Login failed");
+        throw PublicServerRuntimeError("Login failed");
     }
 }
 

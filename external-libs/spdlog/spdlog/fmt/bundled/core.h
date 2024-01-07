@@ -764,7 +764,7 @@ FMT_END_DETAIL_NAMESPACE
 template <typename Char, typename ErrorHandler>
 FMT_CONSTEXPR void
 basic_format_parse_context<Char, ErrorHandler>::do_check_arg_id(int id) {
-  // Argument id is only checked at compile-time during parsing because
+  // Arguments id is only checked at compile-time during parsing because
   // formatting has its own validation.
   if (detail::is_constant_evaluated() && FMT_GCC_VERSION >= 1200) {
     using context = detail::compile_parse_context<Char, ErrorHandler>;

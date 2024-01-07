@@ -3,7 +3,7 @@
 #include "spdlog/spdlog.h"
 
 int main(int argc, char **argv) {
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::info);
     auto server = Server(
             8080,
             8081);

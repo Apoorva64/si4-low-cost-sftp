@@ -14,7 +14,7 @@
  * @brief This enumeration represents the different types of commands in the client-server communication model.
  *
  * The CommandEnum enumeration provides the following command types:
- * LOGIN, UPLOAD, DOWNLOAD, LIST, DELETE, UNKNOWN, REFRESH_TOKEN, INIT_SESSION, SSL_HANDSHAKE.
+ * LOGIN, UPLOAD, DOWNLOAD, LIST, DELETE, UNKNOWN, REFRESH_TOKEN, INIT_SESSION, SSL_HANDSHAKE, SERVER_ERROR
  */
 enum CommandEnum {
     LOGIN = 0,
@@ -26,6 +26,7 @@ enum CommandEnum {
     REFRESH_TOKEN = 6,
     INIT_SESSION = 7,
     SSL_HANDSHAKE = 8,
+    SERVER_ERROR = 9
 };
 
 #endif //SECTRANS_COMMANDENUM_H

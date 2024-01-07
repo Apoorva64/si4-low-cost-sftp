@@ -33,7 +33,7 @@ void PeerServer::handleMessage(const std::string &msg) {
     }
     catch (std::exception &e) {
         logger->error("Error: {}", e.what());
-        send("ERROR");
+        send("SERVER_ERROR");
     }
 }
 
@@ -76,7 +76,7 @@ PeerServer::PeerServer(SessionStorage *st, int inPort1, int outPort) : SocketCom
 void PeerServer::initSession(std::vector<std::string> args) {
     if(args.empty()){
         logger->error("Missing port");
-        send("ERROR");
+        send("SERVER_ERROR");
         return;
     }
 
