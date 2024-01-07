@@ -55,7 +55,7 @@ Command::Command(const std::string &commandString): Arguments(commandString){
 
 }
 
-Command::Command(CommandEnum commandEnum, std::vector<std::string> args) : commandEnum(commandEnum), args(std::move(args)) {}
+Command::Command(CommandEnum commandEnum, std::vector<std::string> args): commandEnum(commandEnum), Arguments(args) {}
 
 /**
  * @brief Retrieves the CommandEnum value corresponding to a string.
