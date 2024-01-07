@@ -7,7 +7,6 @@
 #include "SocketCommunication.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-
 extern "C" {
 #include "libclient.h"
 #include "libserver.h"

@@ -4,13 +4,12 @@
 
 #ifndef SECTRANS_COMMAND_H
 #define SECTRANS_COMMAND_H
-#define SEPARATOR '|'
 
 #include <utility>
 #include <vector>
 #include <sstream>
-
 #include "CommandEnum.h"
+const std::string SEPARATOR = "|"; ///< The separator for the command string.
 
 /**
  * @class Command
