@@ -26,13 +26,14 @@ public:
      */
     SocketCommunication(int inPort, int outPort);
 
-    char *readBuffer; ///< The buffer for reading messages.
-    char *writeBuffer; ///< The buffer for writing messages.
+    char *readBuffer = new char[1024]; ///< The buffer for reading messages.
+    char *writeBuffer = new char[1024]; ///< The buffer for writing messages.
+    char *tempBuffer = new char[1024]; ///< The temporary buffer for reading messages.
     int inPort; ///< The input port number.
     int outPort; ///< The output port number.
-    bool isSslNegotiate; ///< The flag for SSL negotiation.
-    EVP_PKEY *keyClient, *keyServer; ///< The client and server keys.
-    OpenSSL_AES_Keys_st *key; ///< The AES key.
+    bool isSslNegotiate = false; ///< The flag for SSL negotiation.
+    EVP_PKEY *keyClient{}, *keyServer{}; ///< The client and server keys.
+    OpenSSL_AES_Keys_st *key{}; ///< The AES key.
 
     /**
      * @brief Start the server on the input port.

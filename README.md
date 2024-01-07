@@ -8,8 +8,8 @@ sudo apt install libyder-dev
 
 # When launching server be sure that your time is synced with NTP server
 ```shell
-sudo apt install systemd-timesyncd
-sudo timedatectl set-ntp true
+sudo install ntp
+sudo ntpd update
 sudo timedatectl status
 ```
 

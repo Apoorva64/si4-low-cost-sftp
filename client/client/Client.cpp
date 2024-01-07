@@ -65,7 +65,6 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
         this->start();
         this->listFiles();
     });
-    App *help = this->add_subcommand("help", "Display help");
     this->parse(argc, argv);
     this->logger->info("Input port: {}", this->inPort);
 
@@ -87,7 +86,7 @@ void Client::start() {
     SocketCommunication::send(cmd.toString());
     stopserver();
     SocketCommunication::start();
-    char *msg2 = new char[1024];
+    auto *msg2 = new char[1024];
     int error = getmsg(msg2);
     if (error == -1) {
         logger->error("LibServer error");
@@ -95,7 +94,7 @@ void Client::start() {
     }
     std::string newOutPort(msg2);
     std::string ok = "OK";
-    char *msg = new char[1024];
+    auto *msg = new char[1024];
     strcpy(msg, ok.c_str());
     sndmsg(msg, std::stoi(newOutPort));
     error = getmsg(msg2);

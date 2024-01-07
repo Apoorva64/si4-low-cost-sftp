@@ -60,3 +60,6 @@ _deps
 
 cmake-build-debug/
 *Zone.Identifier
+
+.idea/sonarlint/
+.idea/sonarlint.xml

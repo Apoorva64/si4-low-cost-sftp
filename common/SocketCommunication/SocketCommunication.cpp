@@ -15,7 +15,7 @@ extern "C" {
 
 #include<unistd.h>
 
-#define END_OF_MESSAGE '`'
+const char  END_OF_MESSAGE = '`';
 
 /**
  * @brief Constructs a SocketCommunication object.
@@ -26,14 +26,11 @@ extern "C" {
  * @param inPort The port number for incoming messages.
  * @param outPort The port number for outgoing messages.
  */
-SocketCommunication::SocketCommunication(int inPort, int outPort) {
-    this->inPort = inPort;
-    this->outPort = outPort;
-    this->readBuffer = new char[1024];
-    this->writeBuffer = new char[1024];
-    this->logger = spdlog::stdout_color_mt(fmt::format("SocketCommunication[{},{}]", inPort, outPort));
-    this->isSslNegotiate = false;
-}
+SocketCommunication::SocketCommunication(int inPort, int outPort) : inPort(inPort), outPort(outPort),
+                                                                    logger(spdlog::stdout_color_mt(
+                                                                            fmt::format("SocketCommunication[{},{}]",
+                                                                                        inPort, outPort))) {}
+
 
 /**
  * @brief Starts the server on the input port.
@@ -41,7 +38,7 @@ SocketCommunication::SocketCommunication(int inPort, int outPort) {
  * Calls the external function `startserver` to begin listening for incoming connections on the input port.
  */
 void SocketCommunication::start() {
-    logger->info("Starting server on port {}", (int) this->inPort);
+    logger->info("Starting server on port {}", this->inPort);
     startserver(this->inPort);
 }
 
@@ -54,11 +51,10 @@ void SocketCommunication::start() {
  * @throws std::runtime_error If the connection test fails.
  */
 void SocketCommunication::test() const {
-    logger->info("Testing Connection to server sending Ping on port {}", (int) this->outPort);
+    logger->info("Testing Connection to server sending Ping on port {}", this->outPort);
     this->send("Ping");
-    logger->info("Waiting for response... on port {}", (int) this->outPort);
-    std::string str = this->receiveString();
-    if (str != "Pong") {
+    logger->info("Waiting for response... on port {}", this->outPort);
+    if (this->receiveString() != "Pong") {
         throw std::runtime_error("Connection failed");
     }
     std::cout << "Connection established!" << std::endl;
@@ -111,8 +107,7 @@ int SocketCommunication::sndmsgWrapper(char msg[1024], int port) const {
  * @throws std::runtime_error If receiving fails or the handshake is not acknowledged.
  */
 int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
-    char *msg2 = new char[1024];
-    int error = getmsg(msg2);
+    int error = getmsg(this->tempBuffer);
     if (error == -1) {
         logger->error("LibServer error");
         throw std::runtime_error("LibServer error");
@@ -129,7 +124,7 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
         "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
         throw std::runtime_error("Check failed");
     }
-    strcpy(msg, msg2);
+    strcpy(msg, this->tempBuffer);
     return error;
 }
 
