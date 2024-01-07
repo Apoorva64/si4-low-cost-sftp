@@ -16,9 +16,7 @@
 #include "curl_exception.h"
 #include "jwt-cpp/jwt.h"
 
-#define FILES_FOLDER "files"
-//https://keycloak.auth.apoorva64.com/realms/projet-secu/protocol/openid-connect/certs
-std::string RAW_JWKS = R"({"keys":[{"kid":"9cgFE7e849rMB0fxe2HEud-3noZz-dBPEpdcZHOLOwY","kty":"RSA","alg":"RS256","use":"sig","n":"1f8yK8W9dOu2GXvA4pZAxVQLeKkLiU5UsQs0Eyux64yqjMiO9hhRXlwaLLH5aG4wqGRmcFUYBS4-LrkTzyTTrNPIurcLTm5qRhMb0ZGyv0uYZQvxRHvGjg6ZmGrv9KNlBcwJoVRAZ_kvXRlBGrDYgCkqpx7yzgsAPDf9Aqc_PSjZl4Ldxk64sz5-c39rOdLN2QW96ypQlp-N6hlINmwcFXiRcMhsA47TCKmlRIhfqFup3aaN8ishUyIbemrHZi_RsdJubq8Ddf32PIkaGxS2UMQOLMBEhUbjoCob0Vd0C00o_mi4eGR9eAe070lVkLBF9Z6IfTT5J5QC9l0soPNlHw","e":"AQAB","x5c":["MIICpTCCAY0CBgGMlzrSBDANBgkqhkiG9w0BAQsFADAWMRQwEgYDVQQDDAtwcm9qZXQtc2VjdTAeFw0yMzEyMjMxNTA5MjNaFw0zMzEyMjMxNTExMDNaMBYxFDASBgNVBAMMC3Byb2pldC1zZWN1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1f8yK8W9dOu2GXvA4pZAxVQLeKkLiU5UsQs0Eyux64yqjMiO9hhRXlwaLLH5aG4wqGRmcFUYBS4+LrkTzyTTrNPIurcLTm5qRhMb0ZGyv0uYZQvxRHvGjg6ZmGrv9KNlBcwJoVRAZ/kvXRlBGrDYgCkqpx7yzgsAPDf9Aqc/PSjZl4Ldxk64sz5+c39rOdLN2QW96ypQlp+N6hlINmwcFXiRcMhsA47TCKmlRIhfqFup3aaN8ishUyIbemrHZi/RsdJubq8Ddf32PIkaGxS2UMQOLMBEhUbjoCob0Vd0C00o/mi4eGR9eAe070lVkLBF9Z6IfTT5J5QC9l0soPNlHwIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBHda/Ge2ZBMV1bNW2wHd/+PqLzRBmSnvFIO3BdUSgqM1U69+J7WqF/KkvtbcC7MK3OtSv7DNgxswP6nemTDoeG8RY+wkj5QPsXP5waxRB/Hb8TbhVnved4fR35Z3cPIIX+V1A3xgxn2fTl2nSaKIXq1JZHoQ9I3RNh+7zeNi2OhRo2C07f+w66WabowWgSZ6hTiCwfvR2f8KMpuck2Ro42VXMvsK+c0bjY33jXuImtXkim/QCzxQkWG6XNDLmtrv89xA1WhU3plSSXDArXSx7sgwKc2VipCcy1ZPoEMt78ChftAJxVJpb2l+p1vErZy6HAf4OHpfDlSx03cw0IZ5wv"],"x5t":"Namnuyi650xu_T_44vGIWBYbo9Y","x5t#S256":"OZ3egsK_3CObMwS30MdxOGWrXFZSDEjS7fSFO2O2i0Q"},{"kid":"dY_HoGKPr_c6e-G1i2770oV6tfsWorBtRa7cfi5_hs4","kty":"RSA","alg":"RSA-OAEP","use":"enc","n":"vf5jtEYbBHr9gkW7NJBdFDinwLXXC1TgGDKjWmlxthRESfQhk6Sm-_ij22RbcNYtnpidXW7vF0OdmSi0EGupkog7CuRuLOfsQ8h-9Fvh6BehMPYRw1ICro74rESD5gspHAadgI4gnWl9QcSH6EFlck2L796KrPbtBwIecqAJVBK6uP8MfVjcRhU_UA9dqRQi3AMqH_2s-xy1yWyqEPIimjY7wOYM7d9t5Gz4a6KsZYePF_d_FW7K0m4K7rD93wQKgbZVTscdSNvcL1NmeZ8TWV7KlNDHqLdh2h5Cdfrp9oA-KdEJZSjT-h9W1DdbUPfP-AU5OxjG9johORT--0txtQ","e":"AQAB","x5c":["MIICpTCCAY0CBgGMlzrTzzANBgkqhkiG9w0BAQsFADAWMRQwEgYDVQQDDAtwcm9qZXQtc2VjdTAeFw0yMzEyMjMxNTA5MjRaFw0zMzEyMjMxNTExMDRaMBYxFDASBgNVBAMMC3Byb2pldC1zZWN1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvf5jtEYbBHr9gkW7NJBdFDinwLXXC1TgGDKjWmlxthRESfQhk6Sm+/ij22RbcNYtnpidXW7vF0OdmSi0EGupkog7CuRuLOfsQ8h+9Fvh6BehMPYRw1ICro74rESD5gspHAadgI4gnWl9QcSH6EFlck2L796KrPbtBwIecqAJVBK6uP8MfVjcRhU/UA9dqRQi3AMqH/2s+xy1yWyqEPIimjY7wOYM7d9t5Gz4a6KsZYePF/d/FW7K0m4K7rD93wQKgbZVTscdSNvcL1NmeZ8TWV7KlNDHqLdh2h5Cdfrp9oA+KdEJZSjT+h9W1DdbUPfP+AU5OxjG9johORT++0txtQIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQCWszbfphWqhBhuwZQG9ohycPhXU2fKaYA8+psfgpCbZ0LoK4iPr2D/cph7Anll36j/Dg3Ma9METIHd+7cACEiL0d28kjawZCOBPtSU8fZDH5wKMHuFkv+KxZgP8o1ezQFfJJPbCpIQBSeOM28N3/6cQr5+L8VL4N19lihthXFSHWQGE5lmoIbdKeRVsZChkCIOAUGas9A+GPSWmb6bXAIMFURpCCad7xQJQd6P/ee1ehdWmfy8IriKLAecD724J/388WzUrD3cApGc62RzAzOoCpEQpWZwGoB2+pt3RIGaytfQuK9ssTsqMQhggIJI4z/4fpxNwunSchYVtJOZib9q"],"x5t":"gtgHKuEcS8CGM0jk2-oXSAL3sFU","x5t#S256":"Rt9xuJruGJPxSr4IFnx2Ht1Hj9zP53kT2Z19eCeEMVE"}]})";
+const std::string FILES_FOLDER = "files";
 
 /**
  * @brief Constructs a Server object with specified input and output ports.
@@ -33,6 +31,7 @@ std::string RAW_JWKS = R"({"keys":[{"kid":"9cgFE7e849rMB0fxe2HEud-3noZz-dBPEpdcZ
 Server::Server(int inPort1, int outPort) : SocketCommunication(inPort1, outPort) {
     // create files folder if not exists
     std::filesystem::create_directory(FILES_FOLDER);
+    loadJWKS();
     refreshServerTokens();
     App *start = this->add_subcommand("start", "Starts the server");
     start->add_option("-p,--port", this->inPort, "Port to listen on")->required();
@@ -472,7 +471,7 @@ void Server::verifyOrRefreshServerTokens() {
  * @param owner The owner of the file.
  * @return nlohmann::basic_json<> The JSON response from Keycloak containing the resource details.
  */
-nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, const std::string &owner) {
+nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, const std::string &owner) const{
     logger->info("Creating keycloak resource for file: {}", filename);
     std::string createResourceUrl = "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu/clients/1aa674a2-3169-4041-bc82-dbe6cf1de68c/authz/resource-server/resource";
     // Let's declare a stream
@@ -491,7 +490,7 @@ nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, cons
     // set access token
     headers = curl_slist_append(headers, ("Authorization: Bearer " + this->resourceServerAccessToken).c_str());
     easy.add<CURLOPT_HTTPHEADER>(headers);
-    nlohmann::json j = nlohmann::json();
+    auto j = nlohmann::json();
     j["name"] = filename;
     j["owner"] = owner;
     j["ownerManagedAccess"] = true;
@@ -525,7 +524,7 @@ nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, cons
  *
  * @param filename The name of the file whose Keycloak resource should be deleted.
  */
-void Server::deleteKeycloakResource(const std::string &filename) {
+void Server::deleteKeycloakResource(const std::string &filename) const{
     logger->info("Deleting keycloak resource for file: {}", filename);
     std::string deleteResourceUrl =
             "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu/clients/1aa674a2-3169-4041-bc82-dbe6cf1de68c/authz/resource-server/resource/" +
@@ -849,5 +848,31 @@ void Server::Reset() {
     ResetKeycloak();
     for (const auto &entry: std::filesystem::directory_iterator(FILES_FOLDER)) {
         std::filesystem::remove(entry.path());
+    }
+}
+
+
+void Server::loadJWKS() {
+    logger->info("Loading JWKS from Keycloak");
+    // Let's declare a stream
+    std::ostringstream stream;
+    curl::curl_ios<std::ostringstream> ios(stream);
+    curl::curl_easy easy(ios);
+    easy.add<CURLOPT_URL>("https://keycloak.auth.apoorva64.com/realms/projet-secu/protocol/openid-connect/certs");
+    easy.add<CURLOPT_FOLLOWLOCATION>(1L);
+    std::string response;
+
+    // set Content-Type
+    struct curl_slist *headers = nullptr;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    easy.add<CURLOPT_HTTPHEADER>(headers);
+    try {
+        easy.add<CURLOPT_CUSTOMREQUEST>("GET");
+        easy.perform();
+        logger->info("Got JWKS from Keycloak {}", response);
+        this->RAW_JWKS = stream.str();
+    } catch (curl::curl_easy_exception &error) {
+        logger->error("Error while performing request: {}", error.what());
+        throw std::runtime_error("Error while performing request");
     }
 }

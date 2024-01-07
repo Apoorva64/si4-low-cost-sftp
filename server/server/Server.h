@@ -97,7 +97,7 @@ public:
      * @param owner The owner of the file.
      * @return The created Keycloak resource.
      */
-    nlohmann::basic_json<> createKeycloakResource(std::string filename, const std::string& owner);
+    nlohmann::basic_json<> createKeycloakResource(std::string filename, const std::string& owner) const;
     jwt::verifier<default_clock, jwt::traits::kazuho_picojson> verifier = jwt::verify<default_clock, jwt::traits::kazuho_picojson>(default_clock{}).leeway(0);
 
     /**
@@ -150,7 +150,7 @@ public:
      *
      * @param filename The name of the file.
      */
-    void deleteKeycloakResource(const std::string &filename);
+    void deleteKeycloakResource(const std::string &filename) const;
 
     /**
      * @brief Add default permissions in Keycloak.
@@ -170,6 +170,10 @@ public:
 
     void Reset();
 
+
+    void loadJWKS();
+
+    std::string RAW_JWKS;
 };
 
 
