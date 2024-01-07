@@ -15,7 +15,8 @@
 #include "curl_pair.h"
 #include "curl_exception.h"
 #include "jwt-cpp/jwt.h"
-#include "../errors/PublicServerRuntimeError.h"
+#include "../errors/ServerError.h"
+#include "Response/Response.h"
 
 const std::string FILES_FOLDER = "files";
 
@@ -30,8 +31,23 @@ const std::string FILES_FOLDER = "files";
  * @param outPort The output port number for the server.
  */
 Server::Server(int inPort1, int outPort) : SocketCommunication(inPort1, outPort) {
+    logger = spdlog::stdout_color_mt("Server");
     // create files folder if not exists
     std::filesystem::create_directory(FILES_FOLDER);
+    // load secret from env
+    if (std::getenv("SERVER_ADMIN_PASSWORD") != nullptr) {
+        SERVER_ADMIN_PASSWORD = std::getenv("SERVER_ADMIN_PASSWORD");
+    }
+    else {
+        throw std::runtime_error("SERVER_ADMIN_PASSWORD not set in environment");
+    }
+
+    if (std::getenv("KEYCLOAK_CLIENT_SECRET") != nullptr) {
+        KEYCLOAK_CLIENT_SECRET = std::getenv("KEYCLOAK_CLIENT_SECRET");
+    }
+    else {
+        throw std::runtime_error("KEYCLOAK_CLIENT_SECRET not set in environment");
+    }
     loadJWKS();
     refreshServerTokens();
     App *start = this->add_subcommand("start", "Starts the server");
@@ -86,25 +102,25 @@ void Server::handleMessage(const std::string &msg) {
 
             switch (command.commandEnum) {
                 case SSL_HANDSHAKE:
-                    sslHandshake(command.args);
+                    sslHandshake(command.getArgs());
                     break;
                 case LOGIN:
-                    login(command.args);
+                    login(command.getArgs());
                     break;
                 case UPLOAD:
-                    uploadFile(command.args);
+                    uploadFile(command.getArgs());
                     break;
                 case DOWNLOAD:
-                    downloadFile(command.args);
+                    downloadFile(command.getArgs());
                     break;
                 case LIST:
                     listFiles();
                     break;
                 case DELETE:
-                    deleteFile(command.args);
+                    deleteFile(command.getArgs());
                     break;
                 case REFRESH_TOKEN:
-                    refreshToken(command.args);
+                    refreshToken(command.getArgs());
                     break;
                 case UNKNOWN:
                     logger->error("Unknown command: {}", command.toString());
@@ -119,7 +135,7 @@ void Server::handleMessage(const std::string &msg) {
 
             if (this->autoClose && command.commandEnum != SSL_HANDSHAKE && command.commandEnum != LOGIN &&
                 command.commandEnum != REFRESH_TOKEN) {
-                logger->info("Closing connection...");
+                logger->info("| Server.handleMessage | Closing connection...");
                 Server::Close();
                 logger->info("Connection closed!");
                 std::exit(0);
@@ -129,24 +145,22 @@ void Server::handleMessage(const std::string &msg) {
     catch (PublicServerRuntimeError &e) {
         logger->error("{}", e.what());
 
-        Command command(SERVER_ERROR, {e.what()});
-        send(command.toString());
+        send(Response(ERROR, {e.what()}).toString());
 
         if (this->autoClose) {
-            logger->info("Closing connection...");
+            logger->info("| Server.handleMessage | Closing connection...");
             Server::Close();
-            logger->info("Connection closed!");
+            logger->info("| Server.handleMessage | Connection closed!");
             std::exit(0);
         }
     }
     catch (std::exception &e) {
         logger->error("Error: {}", e.what());
-        // TODO: Replace with command
-        send("ERROR");
+        send(Response(ERROR, {"Internal Error: "}).toString());
         if (this->autoClose) {
-            logger->info("Closing connection...");
+            logger->info("| Server.handleMessage | Closing connection...");
             Server::Close();
-            logger->info("Connection closed!");
+            logger->info("| Server.handleMessage | Connection closed!");
             std::exit(0);
         }
     }
@@ -163,10 +177,9 @@ void Server::handleMessage(const std::string &msg) {
 void Server::deleteFile(std::vector<std::string> args) {
     const std::string &filename = args[0];
     if (OpenSSL::is_base64(filename)) {
-        logger->debug("Filename is base64");
+        logger->debug("| Server.deleteFile | Filename is base64");
     } else {
-        logger->debug("Filename is not base64");
-        throw std::runtime_error("Filename is not base64");
+        throw PublicServerRuntimeError("Filename is not base64");
     }
     const std::string &user_access_token = args[1];
     auto decoded = jwt::decode(user_access_token);
@@ -174,29 +187,27 @@ void Server::deleteFile(std::vector<std::string> args) {
     try {
         verifier.verify(decoded);
     } catch (std::exception &e) {
-        logger->error("Token verification failed: {}", e.what());
-        throw std::runtime_error("Token verification failed");
+        throw PublicServerRuntimeError("Token verification failed: " + std::string(e.what()));
     }
     // check permission
     // open file
     std::ifstream file(std::string(FILES_FOLDER) + "/" + filename, std::ios::binary);
     if (!file.is_open()) {
-        logger->error("File not found");
-        throw std::runtime_error("File not found");
+        throw PublicServerRuntimeError("File not found");
     }
     file.seekg(0, std::ios::end);
     unsigned long fileSize = file.tellg();
     file.seekg(0, std::ios::beg);
-    logger->info("File size: {}", fileSize);
+    logger->info("| Server.deleteFile | File size: {}", fileSize);
     std::string fileContentsAndResourceId((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     file.close();
     std::string resourceId = fileContentsAndResourceId.substr(fileContentsAndResourceId.find(SEPARATOR) + 1);
     checkPermissionKeycloak(resourceId, user_access_token, "delete");
-    logger->info("Deleting file: {}", filename);
+    logger->info("| Server.deleteFile | Deleting file: {}", filename);
     deleteKeycloakResource(resourceId);
     std::filesystem::remove(std::string(FILES_FOLDER) + "/" + filename);
-    logger->info("File deleted!");
-    this->send("OK");
+    logger->info("| Server.deleteFile | File deleted!");
+    this->send(Response(DATA, {"OK"}).toString());
 
 }
 
@@ -206,16 +217,16 @@ void Server::deleteFile(std::vector<std::string> args) {
  * Gathers the names of all files stored in the server's file directory and sends them to the client.
  */
 void Server::listFiles() {
-    logger->info("Listing files...");
-    std::string files;
+    logger->info("| Server.listFiles | Listing files...");
+    std::vector<std::string> files;
     for (const auto &entry: std::filesystem::directory_iterator(FILES_FOLDER)) {
         if (OpenSSL::is_base64(entry.path().filename().string())) {
-            files += entry.path().filename().string() + SEPARATOR;
+           files.push_back(entry.path().filename().string());
         }
     }
-    logger->info("Sending files...");
-    send(files);
-    logger->info("Files sent!");
+    logger->info("| Server.listFiles | Sending files...");
+    send(Response(DATA, files).toString());
+    logger->info("| Server.listFiles | Files sent!");
 }
 
 /**
@@ -230,38 +241,36 @@ void Server::downloadFile(std::vector<std::string> args) {
     std::string base64Filename = args[0];
     // check if filename is base64
     if (OpenSSL::is_base64(base64Filename)) {
-        logger->debug("Filename is base64");
+        logger->debug("| Server.downloadFile | Filename is base64");
     } else {
-        logger->debug("Filename is not base64");
-        throw std::runtime_error("Filename is not base64");
+        throw PublicServerRuntimeError("Filename is not base64");
     }
     const std::string &filename = OpenSSL::base64_decode(base64Filename);
 
-    logger->info("Downloading file: {} for token: {}", filename, user_access_token);
+    logger->info("| Server.downloadFile | Downloading file: {} for token: {}", filename, user_access_token);
     auto decoded = jwt::decode(user_access_token);
     // verify token
     verifier.verify(decoded);
-    logger->info("Downloading file: {}", filename);
+    logger->info("| Server.downloadFile | Downloading file: {}", filename);
     std::ifstream file(std::string(FILES_FOLDER) + "/" + base64Filename, std::ios::binary);
     if (!file.is_open()) {
-        logger->error("File not found");
-        throw std::runtime_error("File not found");
+        throw PublicServerRuntimeError("File not found");
     }
     file.seekg(0, std::ios::end);
     unsigned long fileSize = file.tellg();
     file.seekg(0, std::ios::beg);
-    logger->info("File size: {}", fileSize);
+    logger->info("| Server.downloadFile | File size: {}", fileSize);
     std::string fileContentsAndResourceId((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
     file.close();
 
     std::string fileContents = fileContentsAndResourceId.substr(0, fileContentsAndResourceId.find(SEPARATOR));
-    logger->info("File contents: {}", fileContents);
+    logger->info("| Server.downloadFile | File contents: {}", fileContents);
     std::string resourceId = fileContentsAndResourceId.substr(fileContentsAndResourceId.find(SEPARATOR) + 1);
     checkPermissionKeycloak(resourceId, user_access_token, "download");
-    logger->info("Sending file contents...");
-    send(fileContents);
-    logger->info("File sent!");
+    logger->info("| Server.downloadFile | Sending file contents...");
+    send(Response(DATA, {fileContents}).toString());
+    logger->info("| Server.downloadFile | File sent!");
 }
 
 /**
@@ -280,63 +289,61 @@ void Server::uploadFile(std::vector<std::string> args) {
     try {
         verifier.verify(decoded);
     } catch (std::exception &e) {
-        logger->error("Token verification failed: {}", e.what());
-        throw std::runtime_error("Token verification failed");
+        throw PublicServerRuntimeError("Token verification failed: " + std::string(e.what()));
     }
     std::string sub = decoded.get_subject();
     if (OpenSSL::is_base64(args[0])) {
-        logger->debug("Filename is base64");
+        logger->debug("| Server.uploadFile | Filename is base64");
     } else {
-        logger->debug("Filename is not base64");
-        throw std::runtime_error("Filename is not base64");
+        throw PublicServerRuntimeError("Filename is not base64");
     }
     if (OpenSSL::is_base64(args[1])) {
-        logger->debug("File is base64");
+        logger->debug("| Server.uploadFile | File is base64");
     } else {
-        logger->debug("File is not base64");
-        throw std::runtime_error("File is not base64");
+        throw PublicServerRuntimeError("File is not base64");
     }
     std::string filename = OpenSSL::base64_decode(args[0]);
     std::string base64Filename = args[0];
     std::string fileContentsBase64 = args[1];
-    logger->info("Uploading file: {}", filename);
+    logger->info("| Server.uploadFile | Uploading file: {}", filename);
+
+    if (std::filesystem::exists(std::string(FILES_FOLDER) + "/" + base64Filename)) {
+        throw PublicServerRuntimeError("File already exists");
+    }
+
     std::ofstream outfile(std::string(FILES_FOLDER) + "/" + base64Filename);
     outfile << fileContentsBase64;
-    logger->info("File uploaded!");
+    logger->info("| Server.uploadFile | File uploaded!");
     std::string resourceId;
     try {
-        logger->info("Creating keycloak resource...");
-        logger->info("Owner: {}:{}", sub, filename);
+        logger->info("| Server.uploadFile | Creating keycloak resource...");
+        logger->info("| Server.uploadFile | Owner: {}:{}", sub, filename);
         nlohmann::json json = createKeycloakResource(filename, sub);
         resourceId = json["_id"];
-        logger->info("Keycloak resource created!");
+        logger->info("| Server.uploadFile | Keycloak resource created!");
         // append resource id to file
         outfile << SEPARATOR << resourceId;
         outfile.close();
-        send("OK");
+        send(Response(DATA, {"OK"}).toString());
     }
     catch (std::exception &e) {
-        logger->error("Error: {}", e.what());
         outfile.close();
         // delete file
         std::filesystem::remove(std::string(FILES_FOLDER) + "/" + base64Filename);
-        throw std::runtime_error("Error while creating keycloak resource");
+        throw PrivateServerRuntimeError("Error while creating keycloak resource: " + std::string(e.what()));
     }
 
     try {
-        logger->info("Adding default permissions...");
+        logger->info("| Server.uploadFile | Adding default permissions...");
         addDefaultPermissionsKeycloak(resourceId, user_access_token);
-        logger->info("Default permissions added!");
+        logger->info("| Server.uploadFile | Default permissions added!");
     }
     catch (std::exception &e) {
-        logger->error("Error: {}", e.what());
         // delete file
         std::filesystem::remove(std::string(FILES_FOLDER) + "/" + base64Filename);
         deleteKeycloakResource(filename);
-        throw std::runtime_error("Error while adding default permissions");
+        throw PrivateServerRuntimeError("Error while adding default permissions: " + std::string(e.what()));
     }
-
-
 }
 
 /**
@@ -350,27 +357,26 @@ void Server::uploadFile(std::vector<std::string> args) {
 void Server::login(std::vector<std::string> args) {
     std::string username = args[0];
     std::string password = args[1];
-    logger->info("Logging in user: {}", username);
+    logger->info("| Server.login | Logging in user: {}", username);
     // decode base64
     username = OpenSSL::base64_decode(username);
     password = OpenSSL::base64_decode(password);
-    logger->debug("Decoded username: {}", username);
+    logger->debug("| Server.login | Decoded username: {}", username);
 
     // login
     try {
         auto decoded = this->login(username, password);
-        logger->info("User logged in!");
+        logger->info("| Server.login | User logged in!");
         std::string access_token = decoded["access_token"];
-        logger->debug("Access token: {}", access_token);
+        logger->debug("| Server.login | Access token: {}", access_token);
         std::string refresh_token = decoded["refresh_token"];
-        logger->debug("Refresh token: {}", refresh_token);
-        logger->info("Sending tokens...");
+        logger->debug("| Server.login | Refresh token: {}", refresh_token);
+        logger->info("| Server.login | Sending tokens...");
 
         // send OK
-        send(access_token + SEPARATOR + refresh_token);
+        send(Response(DATA, {access_token, refresh_token}).toString());
     } catch (std::exception &e) {
-        logger->error("Login failed: {}", e.what());
-        throw PublicServerRuntimeError("Login failed");
+        throw PublicServerRuntimeError("Login failed" + std::string(e.what()));
     }
 }
 
@@ -402,7 +408,7 @@ nlohmann::json Server::login(std::string username, std::string password) {
     username = curl_easy_escape(easy.get_curl(), username.c_str(), (int) username.length());
     password = curl_easy_escape(easy.get_curl(), password.c_str(), (int) password.length());
     std::string client_id = "projet-secu";
-    std::string client_secret = "cFPXiYvSF1dW0zquutSkMWOROp2cxmt0";
+    std::string client_secret = KEYCLOAK_CLIENT_SECRET;
     std::string grant_type = "password";
     std::string scope = "openid";
     client_id = curl_easy_escape(easy.get_curl(), client_id.c_str(), (int) client_id.length());
@@ -417,14 +423,14 @@ nlohmann::json Server::login(std::string username, std::string password) {
     easy.add<CURLOPT_POSTFIELDS>(postFields.c_str());
     easy.perform();
     response = stream.str();
-    logger->info("Response: {}", response);
+    logger->info("| Server.login | Response: {}", response);
     // parse response
     nlohmann::json json = nlohmann::json::parse(response);
-    logger->debug("JSON: {}", json.dump());
+    logger->debug("| Server.login | JSON: {}", json.dump());
     std::string access_token = json["access_token"];
-    logger->debug("Access token: {}", access_token);
+    logger->debug("| Server.login | Access token: {}", access_token);
     std::string refresh_token = json["refresh_token"];
-    logger->debug("Refresh token: {}", refresh_token);
+    logger->debug("| Server.login | Refresh token: {}", refresh_token);
     auto decoded = jwt::decode(access_token);
 
     auto issuer = decoded.get_issuer();
@@ -436,12 +442,12 @@ nlohmann::json Server::login(std::string username, std::string password) {
                     .allow_algorithm(
                             jwt::algorithm::rs256(jwt::helper::convert_base64_der_to_pem(x5c), "", "", "")).leeway(100);
     if (!issuer.empty()) {
-        logger->debug("Verifying token...");
+        logger->debug("| Server.login | Verifying token...");
         verifier.verify(decoded);
-        logger->info("Token verified!");
+        logger->info("| Server.login | Token verified!");
         return json;
     }
-    throw std::runtime_error("Token verification failed: ");
+    throw PublicServerRuntimeError("Token verification failed");
 }
 
 /**
@@ -450,8 +456,8 @@ nlohmann::json Server::login(std::string username, std::string password) {
  * Logs in the server admin with Keycloak to refresh the server's access token.
  */
 void Server::refreshServerTokens() {
-    logger->info("Refreshing server tokens...");
-    auto decoded = this->login("admin", "ZKqudE5ZDxUA7xf");
+    logger->info("| Server.refreshServerTokens | Refreshing server tokens...");
+    auto decoded = this->login("admin", SERVER_ADMIN_PASSWORD);
     this->resourceServerAccessToken = decoded["access_token"];
 }
 
@@ -461,16 +467,16 @@ void Server::refreshServerTokens() {
  * Verifies the server's current access token and refreshes it if necessary.
  */
 void Server::verifyOrRefreshServerTokens() {
-    logger->info("Verifying server tokens...");
+    logger->info("| Server.verifyOrRefreshServerTokens | Verifying server tokens...");
     auto decoded = jwt::decode(this->resourceServerAccessToken);
     auto issuer = decoded.get_issuer();
     if (!issuer.empty()) {
-        logger->debug("Verifying token...");
+        logger->debug("| Server.verifyOrRefreshServerTokens | Verifying token...");
         try {
             verifier.verify(decoded);
         }
         catch (std::exception &e) {
-            logger->warn("Token verification failed: {}", e.what());
+            logger->warn("| Server.verifyOrRefreshServerTokens | Token verification failed: {}", e.what());
             refreshServerTokens();
             return;
         }
@@ -488,7 +494,7 @@ void Server::verifyOrRefreshServerTokens() {
  * @return nlohmann::basic_json<> The JSON response from Keycloak containing the resource details.
  */
 nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, const std::string &owner) const{
-    logger->info("Creating keycloak resource for file: {}", filename);
+    logger->info("| Server.createKeycloakResource | Creating keycloak resource for file: {}", filename);
     std::string createResourceUrl = "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu/clients/1aa674a2-3169-4041-bc82-dbe6cf1de68c/authz/resource-server/resource";
     // Let's declare a stream
     std::ostringstream stream;
@@ -520,15 +526,14 @@ nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, cons
         easy.add<CURLOPT_POSTFIELDS>(postFields.c_str());
         easy.perform();
     } catch (curl::curl_easy_exception &error) {
-        logger->error("Error while performing request: {}", error.what());
-        throw std::runtime_error("Error while performing request");
+        throw PublicServerRuntimeError("Error while performing request: " + std::string(error.what()));
     }
 
     response = stream.str();
-    logger->info("Response: {}", response);
+    logger->info("| Server.createKeycloakResource | Response: {}", response);
     // parse response
     nlohmann::json json = nlohmann::json::parse(response);
-    logger->debug("JSON: {}", json.dump());
+    logger->debug("| Server.createKeycloakResource | JSON: {}", json.dump());
     return json;
 }
 
@@ -541,7 +546,7 @@ nlohmann::basic_json<> Server::createKeycloakResource(std::string filename, cons
  * @param filename The name of the file whose Keycloak resource should be deleted.
  */
 void Server::deleteKeycloakResource(const std::string &filename) const{
-    logger->info("Deleting keycloak resource for file: {}", filename);
+    logger->info("| Server.deleteKeycloakResource | Deleting keycloak resource for file: {}", filename);
     std::string deleteResourceUrl =
             "https://keycloak.auth.apoorva64.com/admin/realms/projet-secu/clients/1aa674a2-3169-4041-bc82-dbe6cf1de68c/authz/resource-server/resource/" +
             filename;
@@ -565,10 +570,9 @@ void Server::deleteKeycloakResource(const std::string &filename) const{
     try {
         easy.add<CURLOPT_CUSTOMREQUEST>("DELETE");
         easy.perform();
-        logger->info("Keycloak resource deleted! for file: {}", filename);
+        logger->info("| Server.deleteKeycloakResource | Keycloak resource deleted! for file: {}", filename);
     } catch (curl::curl_easy_exception &error) {
-        logger->error("Error while performing request: {}", error.what());
-        throw std::runtime_error("Error while performing request");
+        throw PrivateServerRuntimeError("Error while performing request: " + std::string(error.what()));
     }
 
 }
@@ -585,7 +589,7 @@ void Server::deleteKeycloakResource(const std::string &filename) const{
 void
 Server::checkPermissionKeycloak(std::string filename, const std::string &requesterAccessToken, std::string permission) {
     auto decoded = jwt::decode(requesterAccessToken);
-    logger->info("Checking permission: {} for file: {} for user: {}", permission, filename, decoded.get_subject());
+    logger->info("| Server.checkPermissionKeycloak | Checking permission: {} for file: {} for user: {}", permission, filename, decoded.get_subject());
     // verify token
     verifier.verify(decoded);
     std::string checkPermissionUrl = "https://keycloak.auth.apoorva64.com/realms/projet-secu/protocol/openid-connect/token";
@@ -624,20 +628,19 @@ Server::checkPermissionKeycloak(std::string filename, const std::string &request
     easy.add<CURLOPT_POSTFIELDS>(postFields.c_str());
     easy.perform();
     response = stream.str();
-    logger->info("Response: {}", response);
+    logger->info("| Server.checkPermissionKeycloak | Response: {}", response);
     // parse response
     nlohmann::json json = nlohmann::json::parse(response);
     // check if result is a key
     if (json.find("result") != json.end()) {
         bool result = json["result"];
         if (result) {
-            logger->info("Permission granted for file: {} for user: {}", filename, decoded.get_subject());
+            logger->info("| Server.checkPermissionKeycloak | Permission granted for file: {} for user: {}", filename, decoded.get_subject());
             return;
         }
 
     }
-    logger->error("Permission denied!");
-    throw std::runtime_error("Permission denied");
+    throw PublicServerRuntimeError("Permission denied");
 }
 
 /**
@@ -672,12 +675,12 @@ nlohmann::json Server::refreshToken(std::string refresh_token) {
     easy.add<CURLOPT_POSTFIELDS>(postFields.c_str());
     easy.perform();
     response = stream.str();
-    logger->info("Response: {}", response);
+    logger->info("| Server.refreshToken | Response: {}", response);
     // parse response
     nlohmann::json json = nlohmann::json::parse(response);
-    logger->debug("JSON: {}", json.dump());
+    logger->debug("| Server.refreshToken | JSON: {}", json.dump());
     std::string access_token = json["access_token"];
-    logger->debug("Access token: {}", access_token);
+    logger->debug("| Server.refreshToken | Access token: {}", access_token);
     std::string refresh_token2 = json["refresh_token"];
 
     auto decoded = jwt::decode(access_token);
@@ -694,15 +697,14 @@ nlohmann::json Server::refreshToken(std::string refresh_token) {
  */
 void Server::refreshToken(std::vector<std::string> args) {
     std::string refresh_token = args[0];
-    logger->info("Refreshing token: {}", refresh_token);
+    logger->info("| Server.refreshToken | Refreshing token: {}", refresh_token);
     try {
         auto jsonResponse = this->refreshToken(refresh_token);
-        logger->info("Token refreshed!");
+        logger->info("| Server.refreshToken | Token refreshed!");
         // send OK
-        send(jsonResponse["access_token"].dump() + SEPARATOR + jsonResponse["refresh_token"].dump());
+        send(Response(DATA, {jsonResponse["access_token"], jsonResponse["refresh_token"]}).toString());
     } catch (std::exception &e) {
-        logger->error("Refresh failed: {}", e.what());
-        throw std::runtime_error("Refresh failed");
+        throw PrivateServerRuntimeError("Refresh failed: " + std::string(e.what()));
     }
 }
 
@@ -715,13 +717,13 @@ void Server::refreshToken(std::vector<std::string> args) {
  * @param ownerAccessToken The access token of the owner of the resource.
  */
 void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::string &ownerAccessToken) {
-    logger->info("Adding default permissions for file: {}", resourceId);
+    logger->info("| Server.addDefaultPermissionsKeycloak | Adding default permissions for file: {}", resourceId);
     std::string permissionUrl =
             "https://keycloak.auth.apoorva64.com/realms/projet-secu/account/resources/" + resourceId + "/permissions";
     // get preffered_username from access token
     auto decoded = jwt::decode(ownerAccessToken);
     std::string username = nlohmann::json::parse(decoded.get_payload())["preferred_username"];
-    logger->info("Owner: {}", username);
+    logger->info("| Server.addDefaultPermissionsKeycloak | Owner: {}", username);
 
     // Let's declare a stream
     std::ostringstream stream;
@@ -753,11 +755,10 @@ void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::st
         easy.add<CURLOPT_POSTFIELDS>(postFields.c_str());
         easy.perform();
     } catch (curl::curl_easy_exception &error) {
-        logger->error("Error while performing request: {}", error.what());
-        throw std::runtime_error("Error while performing request");
+        throw PrivateServerRuntimeError("Error while performing request: " + std::string(error.what()));
     }
 
-    logger->info("Default permissions added!");
+    logger->info("| Server.addDefaultPermissionsKeycloak | Default permissions added!");
 }
 
 /**
@@ -770,23 +771,23 @@ void Server::addDefaultPermissionsKeycloak(std::string resourceId, const std::st
  */
 void Server::sslHandshake(std::vector<std::string> args) {
     if (args.size() != 1) {
-        throw std::runtime_error("Error args SSL Handshake");
+        throw PrivateServerRuntimeError("Error args SSL Handshake");
     }
-    logger->info("Init SSL Handshake");
+    logger->info("| Server.sslHandshake | Init SSL Handshake");
     std::string pubKey = OpenSSL::base64_decode(args.at(0));
 
     this->keyClient = OpenSSL_Utils::get_key_from_str(pubKey, "");
     this->keyServer = OpenSSL::rsa_key_generation();
 
     if (this->keyClient == nullptr) {
-        throw std::runtime_error("key client null");
+        throw PrivateServerRuntimeError("key client null");
     }
 
-    logger->info("KeyGeneration Complete");
+    logger->info("| Server.sslHandshake | KeyGeneration Complete");
 
     std::string pubServerKey = OpenSSL::base64_encode(OpenSSL_Utils::get_rsa_public_key_str(this->keyServer));
 
-    logger->info("Send key");
+    logger->info("| Server.sslHandshake | Send key");
     this->send(pubServerKey);
 
     std::string encKey = OpenSSL::base64_decode(this->receiveString());
@@ -808,7 +809,7 @@ void Server::sslHandshake(std::vector<std::string> args) {
     this->send(OpenSSL::base64_encode(encChallenge));
 
     this->isSslNegotiate = true;
-    logger->info("SSL Handshake complete !");
+    logger->info("| Server.sslHandshake | SSL Handshake complete !");
 }
 
 /**
@@ -817,7 +818,7 @@ void Server::sslHandshake(std::vector<std::string> args) {
  * Retrieves and deletes all Keycloak resources associated with the server's client in Keycloak.
  */
 void Server::ResetKeycloak() {
-    logger->info("Reset Keycloak");
+    logger->info("| Server.resetKeycloak | Reset Keycloak");
 
     // Get all resources
     std::string deleteResourceUrl =
@@ -841,26 +842,25 @@ void Server::ResetKeycloak() {
     try {
         easy.add<CURLOPT_CUSTOMREQUEST>("GET");
         easy.perform();
-        logger->info("List of resources");
+        logger->info("| Server.resetKeycloak | List of resources");
     } catch (curl::curl_easy_exception &error) {
-        logger->error("Error while performing request: {}", error.what());
-        throw std::runtime_error("Error while performing request");
+        throw PrivateServerRuntimeError("Error while performing request" + std::string(error.what()));
     }
 
     response = stream.str();
-    logger->info("Response: {}", response);
+    logger->info("| Server.resetKeycloak | Response: {}", response);
     // parse response
     nlohmann::json json = nlohmann::json::parse(response);
-    logger->debug("JSON: {}", json.dump());
+    logger->debug("| Server.resetKeycloak | JSON: {}", json.dump());
     for (auto &element: json) {
         std::string resourceId = element["_id"];
-        logger->info("Deleting resource: {}", resourceId);
+        logger->info("| Server.resetKeycloak | Deleting resource: {}", resourceId);
         deleteKeycloakResource(resourceId);
     }
 }
 
 void Server::Reset() {
-    logger->info("Reset Server");
+    logger->info("| Server.reset | Reset Server");
     ResetKeycloak();
     for (const auto &entry: std::filesystem::directory_iterator(FILES_FOLDER)) {
         std::filesystem::remove(entry.path());
@@ -869,7 +869,7 @@ void Server::Reset() {
 
 
 void Server::loadJWKS() {
-    logger->info("Loading JWKS from Keycloak");
+    logger->info("| Server.reset | Loading JWKS from Keycloak");
     // Let's declare a stream
     std::ostringstream stream;
     curl::curl_ios<std::ostringstream> ios(stream);
@@ -885,10 +885,9 @@ void Server::loadJWKS() {
     try {
         easy.add<CURLOPT_CUSTOMREQUEST>("GET");
         easy.perform();
-        logger->info("Got JWKS from Keycloak {}", response);
+        logger->info("| Server.reset | Got JWKS from Keycloak {}", response);
         this->RAW_JWKS = stream.str();
     } catch (curl::curl_easy_exception &error) {
-        logger->error("Error while performing request: {}", error.what());
-        throw std::runtime_error("Error while performing request");
+        throw PrivateServerRuntimeError("Error while performing request" + std::string(error.what()));
     }
 }

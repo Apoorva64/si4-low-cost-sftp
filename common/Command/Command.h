@@ -9,7 +9,8 @@
 #include <vector>
 #include <sstream>
 #include "CommandEnum.h"
-#include "Args/Arguments.h"
+#include "../Args/Arguments.h"
+
 
 const char SEPARATOR = '|'; ///< The separator for the command string.
 
@@ -20,7 +21,7 @@ const char SEPARATOR = '|'; ///< The separator for the command string.
  * The Command class provides functionalities for creating a command, converting a command to a string,
  * splitting a string into a vector of strings based on a delimiter, and getting the command enumeration value.
  */
-class Command : Arguments {
+class Command : public Arguments {
 public:
     CommandEnum commandEnum;
     /**

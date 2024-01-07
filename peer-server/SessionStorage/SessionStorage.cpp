@@ -3,6 +3,7 @@
 //
 
 #include "SessionStorage.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 /**
  * @brief Constructs a SessionStorage object with a range of ports.
@@ -13,7 +14,10 @@
  * @param minPort The minimum port number available for sessions.
  * @param maxPort The maximum port number available for sessions.
  */
-SessionStorage::SessionStorage(int minPort, int maxPort) : minPort(minPort), maxPort(maxPort), currentFreePort(minPort), sessionList(maxPort-minPort) {
+SessionStorage::SessionStorage(int minPort, int maxPort) : sessionList(maxPort - minPort), minPort(minPort),
+                                                           maxPort(maxPort), currentFreePort(minPort) {
+    logger = spdlog::stdout_color_mt("SessionStorage");
+    logger->info("| SessionStorage.init | SessionStorage initialized with minPort: {}, maxPort: {}", minPort, maxPort);
 }
 
 /**
@@ -27,22 +31,17 @@ SessionStorage::SessionStorage(int minPort, int maxPort) : minPort(minPort), max
  * @throws std::runtime_error If there are no free ports available to create a new session.
  */
 int SessionStorage::generateSession(int clientPort) {
-    if(this->currentFreePort > this->maxPort){
-        throw std::runtime_error("Out of port !");
-    }
+    logger->info("| SessionStorage.generateSession | Generating session for client on port {}", clientPort);
 
     SESSION_CLIENT new_session;
 
     new_session.clientPort = clientPort;
-    new_session.serverPort = this->currentFreePort;
+    new_session.serverPort = getFreePort();
 
-    int index = this->currentFreePort - this->minPort;
 
-    this->sessionList[index] = new_session;
+    this->sessionList.push_back(new_session);
 
-    this->currentFreePort++;
-
-    return index;
+    return new_session.serverPort;
 }
 
 /**
@@ -54,7 +53,12 @@ int SessionStorage::generateSession(int clientPort) {
  * @return SESSION_CLIENT The session information corresponding to the session ID.
  */
 SESSION_CLIENT SessionStorage::getSession(int id) {
-    return this->sessionList[id];
+    for(auto const & i : this->sessionList){
+        if(i.serverPort == id){
+            return i;
+        }
+    }
+    throw std::runtime_error("Session not found !");
 }
 
 /**
@@ -66,4 +70,36 @@ SESSION_CLIENT SessionStorage::getSession(int id) {
  */
 int SessionStorage::getSessionCapacity() const {
     return this->maxPort-this->minPort;
+}
+
+void SessionStorage::freePort(int i) {
+    logger->info("| SessionStorage.freePort | Freeing port {}", i);
+    for(int j = 0; j < this->sessionList.size(); j++){
+        if(this->sessionList[j].serverPort == i){
+            this->sessionList.erase(this->sessionList.begin()+j);
+            return;
+        }
+    }
+    throw std::runtime_error("Session not found !");
+}
+
+
+int SessionStorage::getFreePort() {
+    auto usedPorts = std::vector<int>();
+    for(auto & i : this->sessionList){
+        usedPorts.push_back(i.serverPort);
+    }
+    // intersection between usedPorts and [minPort, maxPort]
+    auto freePorts = std::vector<int>();
+    for(int i = this->minPort; i <= this->maxPort; i++){
+        if(std::find(usedPorts.begin(), usedPorts.end(), i) == usedPorts.end()){
+            freePorts.push_back(i);
+        }
+    }
+    if(freePorts.empty()){
+        throw std::runtime_error("Out of port !");
+    }
+    return freePorts[0];
+
+
 }

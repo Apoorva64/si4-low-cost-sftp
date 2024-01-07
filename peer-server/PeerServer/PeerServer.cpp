@@ -27,12 +27,12 @@ void PeerServer::handleMessage(const std::string &msg) {
                 initSession(command.args);
                 break;
             default:
-                logger->error("Unknown command: {}", command.toString());
+                logger->error("| PeerServer.handleMessage | Unknown command: {}", command.toString());
                 break;
         }
     }
     catch (std::exception &e) {
-        logger->error("Error: {}", e.what());
+        logger->error("| PeerServer.handleMessage | Error: {}", e.what());
         send("SERVER_ERROR");
     }
 }
@@ -48,6 +48,7 @@ void PeerServer::handleMessage(const std::string &msg) {
  */
 PeerServer::PeerServer(SessionStorage *st, int inPort1) : SocketCommunication(inPort1, 0), storage(st), threadPool(){
     threadPool.start(st->getSessionCapacity());
+
 }
 
 /**
@@ -75,7 +76,7 @@ PeerServer::PeerServer(SessionStorage *st, int inPort1, int outPort) : SocketCom
  */
 void PeerServer::initSession(std::vector<std::string> args) {
     if(args.empty()){
-        logger->error("Missing port");
+        logger->error("| PeerServer.initSession | Missing port");
         send("SERVER_ERROR");
         return;
     }
@@ -84,7 +85,7 @@ void PeerServer::initSession(std::vector<std::string> args) {
 
     int idSession = this->storage->generateSession(std::stoi(port));
     this->threadPool.queueJob(PeerServer::manageClient, idSession);
-    logger->info("Session {} created", idSession);
+    logger->info("| PeerServer.initSession | Session {} created", idSession);
 }
 
 /**
@@ -105,4 +106,9 @@ void PeerServer::manageClient(int idSession) {
     // start server with subprocess
     std::string command = "./SecTransServer start -p " + std::to_string(sessionClient.serverPort) + " -o " + std::to_string(sessionClient.clientPort) + " -s 1 -c 1";
     std::system(command.c_str());
+
+
+    lock.lock();
+    sessionStorage->freePort(sessionClient.serverPort);
+    lock.unlock();
 }

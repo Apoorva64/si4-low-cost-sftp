@@ -37,7 +37,7 @@ SocketCommunication::SocketCommunication(int inPort, int outPort) : inPort(inPor
  * Calls the external function `startserver` to begin listening for incoming connections on the input port.
  */
 void SocketCommunication::start() {
-    logger->info("Starting server on port {}", this->inPort);
+    logger->info("| SocketCommunication.start | Starting server on port {}", this->inPort);
     startserver(this->inPort);
 }
 
@@ -50,9 +50,9 @@ void SocketCommunication::start() {
  * @throws std::runtime_error If the connection test fails.
  */
 void SocketCommunication::test() const {
-    logger->info("Testing Connection to server sending Ping on port {}", this->outPort);
+    logger->info("| SocketCommunication.test | Testing Connection to server sending Ping on port {}", this->outPort);
     this->send("Ping");
-    logger->info("Waiting for response... on port {}", this->outPort);
+    logger->info("| SocketCommunication.test | Waiting for response... on port {}", this->outPort);
     if (this->receiveString() != "Pong") {
         throw std::runtime_error("Connection failed");
     }
@@ -74,16 +74,16 @@ void SocketCommunication::test() const {
 int SocketCommunication::sndmsgWrapper(char msg[1024], int port) const {
     int error = sndmsg(msg, port);
     if (error == -1) {
-        logger->error("Libclient error");
+        logger->error("| SocketCommunication.sndmsgWrapper | Libclient error");
         throw std::runtime_error("Libclient error");
     }
 
     // get OK from other side
     getmsg(this->readBuffer);
-    logger->debug("Check Received: {}", this->readBuffer);
+    logger->debug("| SocketCommunication.sndmsgWrapper | Check Received: {}", this->readBuffer);
     if (std::string(this->readBuffer).substr(0, 2) !=
         "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
-        logger->error("Check failed");
+        logger->error("| SocketCommunication.sndmsgWrapper | Check failed");
         throw std::runtime_error("Check failed");
     }
 
@@ -108,7 +108,7 @@ int SocketCommunication::sndmsgWrapper(char msg[1024], int port) const {
 int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
     int error = getmsg(this->tempBuffer);
     if (error == -1) {
-        logger->error("LibServer error");
+        logger->error("| SocketCommunication.getmsgWrapper | LibServer error");
         throw std::runtime_error("LibServer error");
     }
     // send OK to other side
@@ -118,7 +118,7 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
 
     // get OK from other side
     getmsg(this->readBuffer);
-    logger->info("Check Received: {}", this->readBuffer);
+    logger->info("| SocketCommunication.getmsgWrapper | Check Received: {}", this->readBuffer);
     if (std::string(this->readBuffer).substr(0, 2) !=
         "OK") { // TODO: THIS IS FCKED WHY DOES IT HAVE A FCKING 25 at the end???????
         throw std::runtime_error("Check failed");
@@ -136,7 +136,7 @@ int SocketCommunication::getmsgWrapper(char msg[1024], int port) const {
  * @param msg The message to send.
  */
 void SocketCommunication::send(const std::string &msg) const {
-    logger->info("Sending: {} to {}", msg, this->outPort);
+    logger->info("| SocketCommunication.send | Sending: {} to {}", msg, this->outPort);
     std::string msgToSend;
     if (this->isSslNegotiate) {
         msgToSend = OpenSSL::base64_encode(OpenSSL::aes_encrypt(msg, this->key->key, this->key->iv)) + END_OF_MESSAGE;
@@ -168,7 +168,7 @@ void SocketCommunication::send(const std::string &msg) const {
 std::string SocketCommunication::receiveString() const {
     this->getmsgWrapper(this->readBuffer, this->outPort);
     std::string msg = this->readBuffer;
-    logger->debug("Received Chunk: {}", msg);
+    logger->debug("| SocketCommunication.receiveString | Received Chunk: {}", msg);
     while (msg.find(END_OF_MESSAGE) == std::string::npos) {
         this->getmsgWrapper(this->readBuffer, this->outPort);
         msg += this->readBuffer;
@@ -177,7 +177,7 @@ std::string SocketCommunication::receiveString() const {
     if (this->isSslNegotiate) {
         fullMsg = OpenSSL::aes_decrypt(OpenSSL::base64_decode(fullMsg), this->key->key, this->key->iv);
     }
-    logger->info("Received: {}", fullMsg);
+    logger->info("| SocketCommunication.receiveString | Dialog received: {}", fullMsg);
     return fullMsg;
 }
 

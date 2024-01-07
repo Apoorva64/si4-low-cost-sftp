@@ -45,3 +45,7 @@ std::string Arguments::toString() const {
 Arguments::Arguments (const std::string &argumentString): args(split(argumentString,SEPARATOR)) {};
 
 Arguments::Arguments( std::vector<std::string> args) :  args(std::move(args)) {}
+
+std::vector<std::string> Arguments::getArgs() const {
+    return args;
+}

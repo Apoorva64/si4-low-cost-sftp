@@ -6,6 +6,7 @@
 #define SECTRANS_SESSIONSTORAGE_H
 
 #include "OpenSSL.h"
+#include "spdlog/logger.h"
 
 /**
  * @struct session_st
@@ -60,11 +61,17 @@ public:
      */
     [[nodiscard]] int getSessionCapacity() const;
 
+    void freePort(int i);
+
 private:
     std::vector<SESSION_CLIENT> sessionList; ///< The list of sessions.
     int minPort; ///< The minimum port number available for sessions.
     int maxPort; ///< The maximum port number available for sessions.
     int currentFreePort; ///< The current free port number.
+    int getFreePort();
+
+
+    std::shared_ptr<spdlog::logger> logger;
 };
 
 extern SessionStorage *sessionStorage; ///< The global SessionStorage object.

@@ -8,11 +8,14 @@
 
 #include "Args/Arguments.h"
 #include "Command/Command.h"
+#include "ResponseEnum.h"
 
-class Response : Command  {
+class Response : public Arguments  {
 public:
 
-    /**
+    static ResponseEnum getResponseEnum(std::string basicString);
+
+/**
      * @brief Constructs a Command object with a command enum and arguments.
      *
      * This constructor initializes a Command object with the provided command enum value
@@ -21,13 +24,13 @@ public:
      * @param commandEnum The command enum value.
      * @param args A vector of strings representing the arguments for the command.
      */
-    Response::Command(const std::string &commandString): Arguments(commandString){
-        commandEnum = Response::getResponseEnum(args[0]);
-        args.erase(args.begin());
+    [[maybe_unused]] explicit Response(const std::string &commandString);
 
-    }
-    Response::Command(CommandEnum commandEnum, std::vector<std::string> args): commandEnum(commandEnum), Arguments(args) {}
+    Response(ResponseEnum responseEnum, std::vector<std::string> args) : Arguments(std::move(args)), responseEnum(responseEnum) {}
 
+    std::string toString() const override;
+
+    ResponseEnum responseEnum;
 
 };
 

@@ -1,10 +1,11 @@
 #define CONFIG_CATCH_MAIN
+
 #include <catch2/catch_all.hpp>
 #include "OpenSSL.h"
 #include "OpenSSL_Utils.h"
 
-TEST_CASE("AES basic encrypt/decrypt", "[aes_crypt_basic]"){
-    OpenSSL_AES_Keys_st* keys = OpenSSL::aes_key_generation();
+TEST_CASE("AES basic encrypt/decrypt", "[aes_crypt_basic]") {
+    OpenSSL_AES_Keys_st *keys = OpenSSL::aes_key_generation();
     REQUIRE(keys != nullptr);
 
     std::string message = "crypto";
@@ -20,8 +21,8 @@ TEST_CASE("AES basic encrypt/decrypt", "[aes_crypt_basic]"){
     delete keys;
 }
 
-TEST_CASE("AES buffer crypt", "[aes_buffer_crypt]"){
-    OpenSSL_AES_Keys_st* keys = OpenSSL::aes_key_generation();
+TEST_CASE("AES buffer crypt", "[aes_buffer_crypt]") {
+    OpenSSL_AES_Keys_st *keys = OpenSSL::aes_key_generation();
     REQUIRE(keys != nullptr);
 
     std::string message = OpenSSL_Utils::generateRandomString(1024);

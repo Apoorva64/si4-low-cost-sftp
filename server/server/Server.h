@@ -160,8 +160,8 @@ public:
      */
     void ResetKeycloak();
 
-    bool doSendPort;
-    bool autoClose;
+    bool doSendPort{};
+    bool autoClose{};
 
     void Reset();
 
@@ -169,6 +169,9 @@ public:
     void loadJWKS();
 
     std::string RAW_JWKS;
+
+    std::string SERVER_ADMIN_PASSWORD;
+    std::string KEYCLOAK_CLIENT_SECRET;
 };
 
 

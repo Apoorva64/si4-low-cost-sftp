@@ -32,7 +32,8 @@ public:
     int inPort; ///< The input port number.
     int outPort; ///< The output port number.
     bool isSslNegotiate = false; ///< The flag for SSL negotiation.
-    EVP_PKEY *keyClient{}, *keyServer{}; ///< The client and server keys.
+    EVP_PKEY *keyClient{};
+    EVP_PKEY *keyServer{}; ///< The client and server keys.
     OpenSSL_AES_Keys_st *key{}; ///< The AES key.
 
     /**
@@ -92,6 +93,12 @@ public:
     [[noreturn]] void run();
 
     static void Close();
+
+    ~SocketCommunication() {
+        delete[] readBuffer;
+        delete[] writeBuffer;
+        delete[] tempBuffer;
+    }
 };
 
 #endif //SECTRANS_SOCKETCOMMUNICATION_H

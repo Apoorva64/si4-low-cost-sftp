@@ -8,6 +8,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 #include "Command/Command.h"
+#include "Response/Response.h"
 #include <jwt-cpp/jwt.h>
 
 extern "C" {
@@ -78,6 +79,7 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
  * If there is an error in receiving a message from the server, it throws a runtime error.
  */
 void Client::start() {
+    logger->info("| Client.start | Starting client...");
     startserver(8081);
     Command cmd(INIT_SESSION, {std::to_string(this->inPort)});
     SocketCommunication::send(cmd.toString());
@@ -85,7 +87,7 @@ void Client::start() {
     SocketCommunication::start();
     int error = getmsg(this->tempBuffer);
     if (error == -1) {
-        logger->error("LibServer error");
+        logger->error("| Client.start | LibServer error");
         throw std::runtime_error("LibServer error");
     }
     std::string newOutPort(this->tempBuffer);
@@ -94,15 +96,14 @@ void Client::start() {
     sndmsg(this->writeBuffer, std::stoi(newOutPort));
     error = getmsg(this->tempBuffer);
     if (error == -1) {
-        logger->error("LibServer error");
+        logger->error("| Client.start | LibServer error");
         throw std::runtime_error("LibServer error");
     }
-    logger->info("Init session OK");
-    this->logger->info("New Port {}", newOutPort);
+    logger->info("| Client.start | Init session OK");
+    this->logger->info("| Client.start | New Port {}", newOutPort);
     this->outPort = std::stoi(newOutPort);
     this->test();
     this->negotiate();
-
 }
 
 /**
@@ -117,31 +118,28 @@ void Client::start() {
  * @throws std::runtime_error If the challenge fails or there is an error during the handshake.
  */
 void Client::negotiate() {
-    this->logger->info("Start SSL negotiate");
+    this->logger->info("| Client.negotiate | Start SSL negotiate");
     this->keyServer = OpenSSL::rsa_key_generation();
 
     std::string serverPubKey = OpenSSL::base64_encode(OpenSSL_Utils::get_rsa_public_key_str(this->keyServer));
 
     Command cmd(SSL_HANDSHAKE, {serverPubKey});
 
-    this->logger->info("Send Key");
+    this->logger->info("| Client.negotiate | Send Key");
     this->send(cmd.toString());
 
     std::string serverClientKey = OpenSSL::base64_decode(this->receiveString());
-
-
     this->keyClient = OpenSSL_Utils::get_key_from_str(serverClientKey, "");
-
     this->key = OpenSSL::aes_key_generation();
 
-    this->logger->info("Send Crypt AES");
+    this->logger->info("| Client.negotiate | Send Crypt AES");
     std::string aesKey = OpenSSL::base64_encode(OpenSSL::rsa_encrypt(this->keyClient, this->key->key));
     std::string aesIv = OpenSSL::base64_encode(OpenSSL::rsa_encrypt(this->keyClient, this->key->iv));
 
     this->send(aesKey);
     this->send(aesIv);
 
-    this->logger->info("Start challenge");
+    this->logger->info("| Client.negotiate | Start challenge");
     std::string challenge = OpenSSL_Utils::generateRandomString(256);
     std::string encChallenge = OpenSSL::base64_encode(OpenSSL::aes_encrypt(challenge, this->key->key, this->key->iv));
 
@@ -155,10 +153,10 @@ void Client::negotiate() {
         throw std::runtime_error("Error Challenge Failed !");
     }
 
-    this->logger->info("Challenge OK!");
+    this->logger->info("| Client.negotiate | Challenge OK!");
 
     this->isSslNegotiate = true;
-    this->logger->info("SSL Handshake complete !");
+    this->logger->info("| Client.negotiate | SSL Handshake complete !");
 }
 
 /**
@@ -176,7 +174,7 @@ void Client::negotiate() {
  */
 void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &base64FileContent,
                     const std::string &accessToken) {
-    logger->info("Uploading file: {}", filename);
+    logger->info("| Client.upload | Uploading file: {}", filename);
     unsigned long fileContentSize = base64FileContent.length();
 
     // pad file contents to be multiple of 16
@@ -190,8 +188,8 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
         paddedFileContent[i] = '\0';
     }
 
-    logger->debug("File contents: {}", std::string((char *) paddedFileContent, paddedFileContentSize));
-    logger->debug("File contents size: {}", paddedFileContentSize);
+    logger->debug("| Client.upload | File contents: {}", std::string((char *) paddedFileContent, paddedFileContentSize));
+    logger->debug("| Client.upload | File contents size: {}", paddedFileContentSize);
 
     std::string buf((char*)(paddedFileContent), paddedFileContentSize);
 
@@ -201,17 +199,19 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
     // encode file contents to base64
     std::string encodedFileContent = OpenSSL::base64_encode(
             std::string((char *) encryptedFileContent, paddedFileContentSize));
-    logger->debug("Encrypted file contents: {}", encodedFileContent);
+    logger->debug("| Client.upload | Encrypted file contents: {}", encodedFileContent);
     std::string base64FileName = OpenSSL::base64_encode(filename_);
     Command command(UPLOAD, {base64FileName, encodedFileContent, accessToken});
     this->send(command.toString());
     std::string response = this->receiveString();
-    logger->debug("Response: {}", response);
-    if (!response.starts_with("OK")) {
-        std::cout << "Upload failed!" << std::endl;
-        throw std::runtime_error("Upload failed");
+    Response responseParsed(response);
+    logger->debug("| Client.upload | Response: {}", response);
+    if (responseParsed.responseEnum == ERROR) {
+        std::cout << "Upload failed!" + responseParsed.args[0] << std::endl;
+        throw std::runtime_error("Upload failed " + responseParsed.args[0]);
     }
     std::cout << "Upload successful!" << std::endl;
+    delete[] paddedFileContent;
 }
 
 /**
@@ -228,24 +228,26 @@ void Client::upload(const std::string &filename_, const OpenSSL_AES_Keys &param,
  */
 std::string
 Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param, const std::string &accessToken) {
-    logger->info("Downloading file: {}", filename);
+    logger->info("| Client.download | Downloading file: {}", filename);
     std::string base64FileName = OpenSSL::base64_encode(filename_);
     Command command(DOWNLOAD, {base64FileName, accessToken});
     this->send(command.toString());
-    std::string fileContents = this->receiveString();
-    if (fileContents == "ERROR") {
-        std::cout << "Download failed!" << std::endl;
-        throw std::runtime_error("Download failed");
+    std::string fileContentsRaw = this->receiveString();
+    Response responseParsed(fileContentsRaw);
+    if (responseParsed.responseEnum == ERROR) {
+        std::cout << "Download failed!" + responseParsed.args[0] << std::endl;
+        throw std::runtime_error("Download failed " + responseParsed.args[0]);
     }
-    logger->debug("File contents: {}", fileContents);
+    std::string fileContents = responseParsed.args[0];
+    logger->debug("| Client.download | File contents: {}", fileContents);
 
     // decode base64
     std::string decodedFileContent = OpenSSL::base64_decode(fileContents);
-    logger->debug("Decoded file contents: {}", decodedFileContent);
+    logger->debug("| Client.download | Decoded file contents: {}", decodedFileContent);
 
     // decrypt file contents
     std::string dec_buf = OpenSSL::aes_decrypt(decodedFileContent, param.key, param.iv);
-    logger->debug("Decrypted file contents: {}", dec_buf);
+    logger->debug("| Client.download | Decrypted file contents: {}", dec_buf);
     return dec_buf;
 }
 
@@ -260,15 +262,16 @@ Client::download(const std::string &filename_, const OpenSSL_AES_Keys &param, co
  */
 void Client::deleteFile(std::string filename_) {
     this->RefreshIfNeededOrLogin();
-    logger->info("Deleting file: {}", filename_);
+    logger->info("| Client.deleteFile | Deleting file: {}", filename_);
     std::string base64FileName = OpenSSL::base64_encode(filename_);
     Command command(DELETE, {base64FileName, this->accessToken});
     this->send(command.toString());
     std::string response = this->receiveString();
-    logger->debug("Response: {}", response);
-    if (!response.starts_with("OK")) {
-        std::cout << "Delete failed!" << std::endl;
-        throw std::runtime_error("Delete failed");
+    Response responseParsed(response);
+    logger->debug("| Client.deleteFile | Response: {}", response);
+    if (responseParsed.responseEnum == ERROR) {
+        std::cout << "Delete failed!" + responseParsed.args[0] << std::endl;
+        throw std::runtime_error("Delete failed " + responseParsed.args[0]);
     }
     std::cout << "Delete successful!" << std::endl;
 }
@@ -291,14 +294,14 @@ void Client::upload() {
     std::streamsize size = file.tellg();
     file.seekg(0, std::ios::beg);
     if (auto *fileContent = new unsigned char[size]; file.read((char *) fileContent, size)) {
-        logger->debug("File contents: {}", std::string((char *) fileContent, size));
-        logger->debug("File contents size: {}", size);
+        logger->debug("| Client.upload | File contents: {}", std::string((char *) fileContent, size));
+        logger->debug("| Client.upload | File contents size: {}", size);
         std::string fileContentString((char *)(fileContent), size);
         std::string base64FileContent = OpenSSL::base64_encode(fileContentString);
         this->RefreshIfNeededOrLogin();
         this->upload(this->filename, aesKeys, base64FileContent, this->accessToken);
     } else {
-        logger->error("Failed to read file");
+        logger->error("| Client.upload | Failed to read file");
     }
 
     file.close();
@@ -318,10 +321,10 @@ void Client::download() {
     this->RefreshIfNeededOrLogin();
 
     std::string decrypted = this->download(this->filename, aesKeys, this->accessToken);
-    logger->debug("Decrypted file contents: {}", decrypted);
+    logger->debug("| Client.download | Decrypted file contents: {}", decrypted);
     // base64 decode
     std::string decoded = OpenSSL::base64_decode(decrypted);
-    logger->debug("Decoded file contents: {}", decoded);
+    logger->debug("| Client.download | Decoded file contents: {}", decoded);
     std::ofstream file(this->filename, std::ios::binary);
     file << decoded;
     file.close();
@@ -350,19 +353,18 @@ void Client::login() {
     this->send(command.toString());
     std::string response = this->receiveString();
 
-    // HERE needs to be added a parsing of the command sent by the server
-
-    if (response == "ERROR") {
-        std::cout << "Login failed!" << std::endl;
-        throw std::runtime_error("Login failed");
+    Response responseParsed(response);
+    if (responseParsed.responseEnum == ERROR) {
+        std::cout << "Login failed!" + responseParsed.args[0] << std::endl;
+        throw std::runtime_error("Login failed " + responseParsed.args[0]);
     }
     std::cout << "Login successful!" << std::endl;
-    logger->debug("Response: {}", response);
+    logger->debug("| Client.login | Response: {}", response);
     // parse response
-    std::string access = response.substr(0, response.find(SEPARATOR));
-    std::string refresh = response.substr(response.find(SEPARATOR) + 1);
-    logger->debug("Access token: {}", access);
-    logger->debug("Refresh token: {}", refresh);
+    std::string access = responseParsed.args[0];
+    std::string refresh = responseParsed.args[1];
+    logger->debug("| Client.login | Access token: {}", access);
+    logger->debug("| Client.login | Refresh token: {}", refresh);
     this->accessToken = access;
     this->refreshToken = refresh;
 }
@@ -377,18 +379,19 @@ void Client::RefreshToken() {
     Command command(REFRESH_TOKEN, {this->refreshToken});
     this->send(command.toString());
     std::string response = this->receiveString();
-    if (response == "ERROR") {
-        std::cout << "Refresh failed!" << std::endl;
+    Response responseParsed(response);
+    if (responseParsed.responseEnum == ERROR) {
+        std::cout << "Refresh failed!" + responseParsed.args[0] << std::endl;
         login();
         return;
     }
     std::cout << "Refresh successful!" << std::endl;
-    logger->debug("Response: {}", response);
+    logger->debug("| Client.refreshToken | Response: {}", response);
     // parse response
-    std::string access = response.substr(0, response.find(SEPARATOR));
-    std::string refresh = response.substr(response.find(SEPARATOR) + 1);
-    logger->debug("Access token: {}", access);
-    logger->debug("Refresh token: {}", refresh);
+    std::string access = responseParsed.args[0];
+    std::string refresh = responseParsed.args[1];
+    logger->debug("| Client.refreshToken | Access token: {}", access);
+    logger->debug("| Client.refreshToken | Refresh token: {}", refresh);
     this->accessToken = access;
     this->refreshToken = refresh;
 }
@@ -419,13 +422,16 @@ void Client::listFiles(){
     Command command(LIST, {this->accessToken});
     this->send(command.toString());
     std::string response = this->receiveString();
-    if (response == "ERROR") {
-        logger->error("List failed");
-        throw std::runtime_error("List failed");
+    Response responseParsed(response);
+    if (responseParsed.responseEnum == ERROR) {
+        logger->error("| Client.listFiles | List failed" + responseParsed.args[0]);
+        throw std::runtime_error("List failed " + responseParsed.args[0]);
     }
-    logger->debug("Response: {}", response);
-    auto files = Command::split(response, SEPARATOR);
-    for(auto &file : files){
+    logger->debug("| Client.listFiles | Response: {}", response);
+    auto files = responseParsed.args;
+    std::cout << "================================" << std::endl;
+    for(auto &file : files) {
         std::cout << OpenSSL::base64_decode(file) << std::endl;
     }
+    std::cout << "================================" << std::endl;
 }

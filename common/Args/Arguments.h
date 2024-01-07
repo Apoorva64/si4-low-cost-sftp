@@ -12,17 +12,15 @@
 #include <sstream>
 class Arguments {
 public:
-    std::vector<std::string> args; ///< The arguments of the command.
-    std::string toString() const;
 
-    std::vector<std::string> split(const std::string &str, char delimiter);
+    static std::vector<std::string> split(const std::string &str, char delimiter);
     /**
  * @brief Construct a new Command object.
  *
  * @param commandEnum The enumeration value of the command.
  * @param args The arguments of the command.
  */
-    Arguments(std::vector<std::string> args);
+    explicit Arguments(std::vector<std::string> args);
 
     /**
      * @brief Construct a new Command object from a command string.
@@ -30,6 +28,14 @@ public:
      * @param commandString The command string.
      */
     explicit Arguments (const std::string &argumentString);
+
+    std::vector<std::string> args;
+
+
+    //get args
+    virtual std::vector<std::string> getArgs() const;
+
+    virtual std::string toString() const;
 };
 
 
