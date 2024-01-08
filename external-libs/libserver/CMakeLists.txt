@@ -4,8 +4,9 @@
 add_library(libserver STATIC
         libserver.h
 )
-
-target_link_libraries(libserver  ${CMAKE_CURRENT_SOURCE_DIR}/libserver.so
+# static library
+target_link_libraries(libserver
+        ${CMAKE_CURRENT_SOURCE_DIR}/libserver.so
 )
 set_target_properties(libserver PROPERTIES LINKER_LANGUAGE CXX)
 
