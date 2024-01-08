@@ -17,7 +17,3 @@ sudo install ntp
 sudo ntpd update
 sudo timedatectl status
 ```
-
-USER: user1
-
-PASS: user1
