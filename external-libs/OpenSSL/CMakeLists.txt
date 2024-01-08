@@ -19,6 +19,7 @@ target_link_libraries(OpenSSL
 
 set_target_properties(OpenSSL PROPERTIES LINKER_LANGUAGE CXX)
 
+
 # Specify here the include directories exported
 # by this library
 target_include_directories(OpenSSL PUBLIC

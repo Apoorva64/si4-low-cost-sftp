@@ -7,9 +7,10 @@ add_executable(SecTransPeerServer main.cpp
         SessionStorage/SessionStorage.h
 )
 #INCLUDE_DIRECTORIES(${CURLCPP_SOURCE_DIR}/include)
-target_link_libraries(SecTransPeerServer libclient libserver ThreadPool OpenSSL common spdlog curlcpp nlohmann_json::nlohmann_json jwt-cpp)
+target_link_libraries(SecTransPeerServer libclient libserver ThreadPool OpenSSL common spdlog curlcpp nlohmann_json::nlohmann_json jwt-cpp )
 # static linking
 add_dependencies(SecTransPeerServer SecTransServer)
+# add libc
 set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 # Copy SecTransServer executable from /server build directory to /build directory of SecTransPeerServer project. Delete old executable first be verbose
 add_custom_command(TARGET SecTransPeerServer POST_BUILD
@@ -25,7 +26,6 @@ add_custom_command(TARGET SecTransPeerServer POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/external-libs/libserver/libserver.so ${CMAKE_CURRENT_BINARY_DIR}/libserver.so
         COMMENT "Copying libserver.so to build directory"
         )
-include(GNUInstallDirs)
 
 # build release
 set(CMAKE_BUILD_TYPE Release)
