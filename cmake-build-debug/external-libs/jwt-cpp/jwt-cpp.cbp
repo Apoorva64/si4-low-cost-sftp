@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="jwt-cpp"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\cmake-build-debug\;CMake Files\cmake-build-debug\_deps\;CMake Files\cmake-build-debug\_deps\catch2-src\;CMake Files\cmake-build-debug\_deps\catch2-src\CMake\;CMake Files\cmake-build-debug\_deps\catch2-src\src\;CMake Files\cmake-build-debug\_deps\catch2-src\src\catch2\;CMake Files\cmake-build-debug\_deps\catch2-src\extras\;CMake Files\cmake-build-debug\_deps\nlohmann_json-src\;CMake Files\cmake-build-debug\_deps\nlohmann_json-src\cmake\;CMake Files\external-libs\;CMake Files\external-libs\libclient\;CMake Files\external-libs\libserver\;CMake Files\external-libs\OpenSSL\;CMake Files\external-libs\CLI11\;CMake Files\external-libs\spdlog\;CMake Files\external-libs\jwt-cpp\;CMake Files\external-libs\jwt-cpp\cmake\;CMake Files\external-libs\jwt-cpp\example\;CMake Files\external-libs\jwt-cpp\example\traits\;CMake Files\external-libs\curlcpp\;CMake Files\external-libs\curlcpp\CMakeScripts\;CMake Files\external-libs\curlcpp\CMake\;CMake Files\external-libs\curlcpp\src\;CMake Files\external-libs\ThreadPool\;CMake Files\common\;CMake Files\server\;CMake Files\peer-server\;CMake Files\client\;CMake Files\tests\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="print-claims">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/print-claims" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 print-claims"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="print-claims/fast">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/print-claims" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 print-claims/fast"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="private-claims">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/private-claims" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 private-claims"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="private-claims/fast">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/private-claims" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 private-claims/fast"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rsa-create">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/rsa-create" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 rsa-create"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rsa-create/fast">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/rsa-create" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 rsa-create/fast"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rsa-verify">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/rsa-verify" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 rsa-verify"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rsa-verify/fast">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/rsa-verify" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 rsa-verify/fast"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="jwks-verify">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/jwks-verify" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 jwks-verify"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="jwks-verify/fast">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/jwks-verify" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 jwks-verify/fast"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="es256k">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/es256k" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 es256k"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="es256k/fast">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/es256k" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 es256k/fast"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="partial-claim-verifier">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/partial-claim-verifier" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/nlohmann_json-src/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 partial-claim-verifier"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="partial-claim-verifier/fast">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/partial-claim-verifier" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/nlohmann_json-src/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 partial-claim-verifier/fast"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="nlohmann-json">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/nlohmann-json" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/nlohmann_json-src/include"/>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/Makefile&quot;  VERBOSE=1 nlohmann-json"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="nlohmann-json/fast">
+				<Option output="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/nlohmann-json" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/nlohmann_json-src/include"/>
+					<Add directory="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/include"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/Makefile&quot;  VERBOSE=1 nlohmann-json/fast"/>
+					<CompileFile command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j16 -f &quot;/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/jwt-cpp/example/traits/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/es256k.cpp">
+			<Option target="es256k"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/jwks-verify.cpp">
+			<Option target="jwks-verify"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/partial-claim-verifier.cpp">
+			<Option target="partial-claim-verifier"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/print-claims.cpp">
+			<Option target="print-claims"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/private-claims.cpp">
+			<Option target="private-claims"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/rsa-create.cpp">
+			<Option target="rsa-create"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/rsa-verify.cpp">
+			<Option target="rsa-verify"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/traits/nlohmann-json.cpp">
+			<Option target="nlohmann-json"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/catch2-src/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\catch2-src\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/catch2-src/CMake/CatchConfigOptions.cmake">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\catch2-src\CMake\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/catch2-src/CMake/CatchMiscFunctions.cmake">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\catch2-src\CMake\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/catch2-src/src/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\catch2-src\src\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/catch2-src/src/catch2/catch_user_config.hpp.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\catch2-src\src\catch2\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/catch2-src/extras/Catch.cmake">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\catch2-src\extras\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/nlohmann_json-src/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\nlohmann_json-src\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/nlohmann_json-src/cmake/config.cmake.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\nlohmann_json-src\cmake\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/nlohmann_json-src/cmake/nlohmann_jsonConfigVersion.cmake.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\nlohmann_json-src\cmake\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/cmake-build-debug/_deps/nlohmann_json-src/cmake/pkg-config.pc.in">
+			<Option virtualFolder="CMake Files\cmake-build-debug\_deps\nlohmann_json-src\cmake\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/libclient/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\libclient\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/libserver/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\libserver\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/OpenSSL/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\OpenSSL\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/CLI11/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\CLI11\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/spdlog/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\spdlog\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\jwt-cpp\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/cmake/jwt-cpp-config.cmake.in">
+			<Option virtualFolder="CMake Files\external-libs\jwt-cpp\cmake\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/cmake/private-find-boost-json.cmake">
+			<Option virtualFolder="CMake Files\external-libs\jwt-cpp\cmake\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/cmake/private-find-kazuho-picojson.cmake">
+			<Option virtualFolder="CMake Files\external-libs\jwt-cpp\cmake\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\jwt-cpp\example\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/jwt-cpp/example/traits/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\jwt-cpp\example\traits\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/curlcpp/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\curlcpp\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/curlcpp/CMakeScripts/JoinPaths.cmake">
+			<Option virtualFolder="CMake Files\external-libs\curlcpp\CMakeScripts\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/curlcpp/CMake/curlcppConfig.cmake.in">
+			<Option virtualFolder="CMake Files\external-libs\curlcpp\CMake\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/curlcpp/src/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\curlcpp\src\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/curlcpp/src/curlcpp.pc.in">
+			<Option virtualFolder="CMake Files\external-libs\curlcpp\src\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/external-libs/ThreadPool/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\external-libs\ThreadPool\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/common/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\common\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/server/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\server\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/peer-server/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\peer-server\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/client/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\client\"/>
+		</Unit>
+		<Unit filename="/home/apoorva64/SecTrans2/tests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\tests\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

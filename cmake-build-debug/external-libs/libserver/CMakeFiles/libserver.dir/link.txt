@@ -1,0 +1,2 @@
+/usr/bin/ar qc liblibserver.a 
+/usr/bin/ranlib liblibserver.a

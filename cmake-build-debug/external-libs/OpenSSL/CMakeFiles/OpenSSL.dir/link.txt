@@ -1,0 +1,2 @@
+/usr/bin/ar qc libOpenSSL.a CMakeFiles/OpenSSL.dir/OpenSSL.cpp.o CMakeFiles/OpenSSL.dir/OpenSSL_AES.cpp.o CMakeFiles/OpenSSL.dir/OpenSSL_Utils.cpp.o CMakeFiles/OpenSSL.dir/OpenSSL_RSA.cpp.o
+/usr/bin/ranlib libOpenSSL.a

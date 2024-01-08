@@ -1,0 +1,2 @@
+/usr/bin/ar qc libcommon.a CMakeFiles/common.dir/SocketCommunication/SocketCommunication.cpp.o CMakeFiles/common.dir/Command/Command.cpp.o CMakeFiles/common.dir/Response/Response.cpp.o CMakeFiles/common.dir/Args/Arguments.cpp.o
+/usr/bin/ranlib libcommon.a
