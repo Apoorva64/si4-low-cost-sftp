@@ -13,4 +13,4 @@ find_library(curl NAMES curl)
 
 target_link_libraries(SecTransClient libclient libserver OpenSSL CLI11 common jwt-cpp)
 
-#set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Release)

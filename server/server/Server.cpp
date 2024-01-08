@@ -53,7 +53,7 @@ Server::Server(int inPort1, int outPort) : SocketCommunication(inPort1, outPort)
     App *start = this->add_subcommand("start", "Starts the server");
     start->add_option("-p,--port", this->inPort, "Port to listen on")->required();
     start->add_option("-o,--outport", this->outPort, "Port to send messages to")->required();
-    start->add_option("-s,--doSendPort", this->doSendPort, "Whether to send the port number to the server");
+    start->add_option("-s,--doSendPort", this->doSendPort, "Whether to send the port number to the client");
     start->add_option("-c,--autoclose", this->autoClose, "Whether to close the connection after one interaction");
     start->callback([&]() {
                         this->start();

@@ -25,3 +25,4 @@ target_link_libraries(common libclient libserver OpenSSL spdlog)
 target_include_directories(common PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
+set(CMAKE_BUILD_TYPE Release)

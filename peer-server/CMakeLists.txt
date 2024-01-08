@@ -17,4 +17,4 @@ add_custom_command(TARGET SecTransPeerServer POST_BUILD
         )
 
 # build release
-#set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Release)

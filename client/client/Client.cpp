@@ -46,11 +46,11 @@ Client::Client(int inPort, int outPort, int argc, char **argv) : SocketCommunica
         this->start();
         this->download();
     });
-    App *login = this->add_subcommand("login", "Login to server");
-    login->callback([this]() {
-        this->start();
-        this->login();
-    });
+//    App *login = this->add_subcommand("login", "Login to server");
+//    login->callback([this]() {
+//        this->start();
+//        this->login();
+//    });
     App *deleteFile = this->add_subcommand("delete", "Delete a file");
     deleteFile->add_option("-f,--file", this->filename, "Specify file to delete")->required();
     deleteFile->callback([this]() {
