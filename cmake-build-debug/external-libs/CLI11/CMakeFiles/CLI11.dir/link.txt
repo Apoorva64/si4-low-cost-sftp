@@ -1,2 +1,0 @@
-/usr/bin/ar qc libCLI11.a 
-/usr/bin/ranlib libCLI11.a

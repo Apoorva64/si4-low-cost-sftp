@@ -1,4 +1,0 @@
-/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/curlcpp/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
-/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/curlcpp/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
-/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/curlcpp/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
-/home/apoorva64/SecTrans2/cmake-build-debug/external-libs/curlcpp/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir

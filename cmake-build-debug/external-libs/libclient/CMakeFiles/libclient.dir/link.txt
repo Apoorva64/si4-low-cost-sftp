@@ -1,2 +1,0 @@
-/usr/bin/ar qc liblibclient.a 
-/usr/bin/ranlib liblibclient.a
