@@ -10,6 +10,7 @@ add_executable(SecTransPeerServer main.cpp
 target_link_libraries(SecTransPeerServer libclient libserver ThreadPool OpenSSL common spdlog curlcpp nlohmann_json::nlohmann_json jwt-cpp)
 # static linking
 add_dependencies(SecTransPeerServer SecTransServer)
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 # Copy SecTransServer executable from /server build directory to /build directory of SecTransPeerServer project. Delete old executable first be verbose
 add_custom_command(TARGET SecTransPeerServer POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E remove -f SecTransServer
