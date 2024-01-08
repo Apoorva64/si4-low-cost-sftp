@@ -15,6 +15,14 @@ add_custom_command(TARGET SecTransPeerServer POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E remove -f SecTransServer
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/server/SecTransServer ${CMAKE_CURRENT_BINARY_DIR}/SecTransServer
         COMMENT "Copying SecTransServer to build directory"
+
+        # copy libclient.so to build directory
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/external-libs/libclient/libclient.so ${CMAKE_CURRENT_BINARY_DIR}/libclient.so
+        COMMENT "Copying libclient.so to build directory"
+
+        # copy libserver.so to build directory
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/external-libs/libserver/libserver.so ${CMAKE_CURRENT_BINARY_DIR}/libserver.so
+        COMMENT "Copying libserver.so to build directory"
         )
 include(GNUInstallDirs)
 
